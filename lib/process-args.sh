@@ -25,7 +25,6 @@ function printHelp {
 # default values, but command-line arguments override them.  Any positional
 # arguments are saved to _positionalArgs.
 declare -a _positionalArgs
-workSpaceDir=${WORKSPACE:-$(pwd)}
 hasCommandLineErrors=false
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -35,10 +34,32 @@ while [ $# -gt 0 ]; do
 			exit 0
 		;;
 
+		# Set the configuration source
+		-c|--config)
+			if [ -z "$2" ]; then
+				echo "ERROR:  -c|--config requires a value." >&2
+				hasCommandLineErrors=true
+			else
+				configSource="$2"
+				shift
+			fi
+			shift
+		;;
+		--config=*)
+			configSource="${1#*=}"
+			shift
+		;;
+
 		# Set the working directory
 		-w|--workspace)
-			workSpaceDir="$2"
-			shift 2
+			if [ -z "$2" ]; then
+				echo "ERROR:  -w|--workspace requires a value." >&2
+				hasCommandLineErrors=true
+			else
+				workSpaceDir="$2"
+				shift
+			fi
+			shift
 		;;
 		--workspace=*)
 			workSpaceDir="${1#*=}"
