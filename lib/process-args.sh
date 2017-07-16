@@ -1,4 +1,3 @@
-#!/bin/bash
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
 ################################################################################
@@ -24,7 +23,6 @@ function printHelp {
 # Process command-line arguments.  Allow environment variables to be used to set
 # default values, but command-line arguments override them.  Any positional
 # arguments are saved to _positionalArgs.
-declare -a _positionalArgs
 hasCommandLineErrors=false
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -40,13 +38,13 @@ while [ $# -gt 0 ]; do
 				echo "ERROR:  -c|--config requires a value." >&2
 				hasCommandLineErrors=true
 			else
-				configSource="$2"
+				_configMap[CONFIG_SOURCE]="$2"
 				shift
 			fi
 			shift
 		;;
 		--config=*)
-			configSource="${1#*=}"
+			_configMap[CONFIG_SOURCE]="${1#*=}"
 			shift
 		;;
 
@@ -56,13 +54,13 @@ while [ $# -gt 0 ]; do
 				echo "ERROR:  -w|--workspace requires a value." >&2
 				hasCommandLineErrors=true
 			else
-				workSpaceDir="$2"
+				_configMap[WORKSPACE]="$2"
 				shift
 			fi
 			shift
 		;;
 		--workspace=*)
-			workSpaceDir="${1#*=}"
+			_configMap[WORKSPACE]="${1#*=}"
 			shift
 		;;
 
@@ -97,9 +95,9 @@ declare -a cliArguments=("$@")
 argumentCount=${#cliArguments[@]}
 for ((i = 0; i < argumentCount; i++)); do
 	testArgument=${cliArguments[$i]}
-	echo "i:${i}: [${testArgument}]"
+	echo "index:${i}: [${testArgument}]"
 
-
+	_positionalArgs="${testArgument}"
 done
 
 # Cleanup
