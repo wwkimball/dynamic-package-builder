@@ -31,7 +31,9 @@ EOHELP
 
 # Define global configuration defaults
 _globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
+_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
 _globalSettings[WORKSPACE]=${WORKSPACE:-$(pwd)}
+_globalSettings[BUILD_WORKSPACE_TREE]=${BUILD_WORKSPACE_TREE:-true}
 
 # Process command-line arguments.  Allow environment variables to be used to set
 # default values, but command-line arguments override them.  Any positional
@@ -53,50 +55,54 @@ while [ $# -gt 0 ]; do
 
 		# Set the core configuration source
 		-s|--settings)
+			_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 			if [ -z "$2" ]; then
-				echo "ERROR:  -s|--settings requires a value." >&2
+				logError "-s|--settings requires a value." >&2
 				hasCommandLineErrors=true
 			else
 				_globalSettings[GLOBAL_CONFIG_SOURCE]="$2"
 				shift
 			fi
-			shift
 		;;
 		--settings=*)
+			_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 			_globalSettings[GLOBAL_CONFIG_SOURCE]="${1#*=}"
-			shift
+		;;
+
+		# Control whether to build the workspace directory tree
+		-t|--buildtree)
+			_globalSettings[BUILD_WORKSPACE_TREE]=true
+		;;
+		-T|--nobuildtree)
+			_globalSettings[BUILD_WORKSPACE_TREE]=false
 		;;
 
 		# Set the RPM spec source
 		-r|--rpmspecs)
 			if [ -z "$2" ]; then
-				echo "ERROR:  -r|--rpmspecs requires a value." >&2
+				logError "-r|--rpmspecs requires a value." >&2
 				hasCommandLineErrors=true
 			else
 				_globalSettings[RPM_SPECS_SOURCE]="$2"
 				shift
 			fi
-			shift
 		;;
 		--rpmspecs=*)
 			_globalSettings[RPM_SPECS_SOURCE]="${1#*=}"
-			shift
 		;;
 
 		# Set the working directory
 		-w|--workspace)
 			if [ -z "$2" ]; then
-				echo "ERROR:  -w|--workspace requires a value." >&2
+				logError "-w|--workspace requires a value." >&2
 				hasCommandLineErrors=true
 			else
 				_globalSettings[WORKSPACE]="$2"
 				shift
 			fi
-			shift
 		;;
 		--workspace=*)
 			_globalSettings[WORKSPACE]="${1#*=}"
-			shift
 		;;
 
 		# Explicit start of positional arguments
@@ -107,9 +113,8 @@ while [ $# -gt 0 ]; do
 
 		# Unknown arguments
 		-*)
-			echo "ERROR:  Unknown option, $1." >&2
+			logError "Unknown option, $1." >&2
 			hasCommandLineErrors=true
-			shift
 		;;
 
 		# Implied start of positional arguments
@@ -117,6 +122,8 @@ while [ $# -gt 0 ]; do
 			break;
 		;;
 	esac
+
+	shift
 done
 
 # Don't process any further with fatal command input errors

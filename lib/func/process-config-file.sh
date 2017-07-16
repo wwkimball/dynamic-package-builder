@@ -1,15 +1,45 @@
 ################################################################################
-# Function for ../../build-rpm-specs.sh
+# Defines a function, parseConfigFile, which provides configuration file parsing
+# capabilities.  The results are stored into an associative array as a key-value
+# data store.  The function caller declares and identifies the associative array
+# and passes the configuration file path.  The configuration file defines keys,
+# values, and comments as follows:
+# 1. Whitespace before the key, on either side of the assignment operator,
+#    after the value, and on otherwise empty lines is ignored.
+# 2. Keys and values may be separated by either = or : assignment operators.
+#    So, these lines are equivalent:
+#    KEY = VALUE
+#    KEY: VALUE
+# 3. Values may be bare (non-demarcated) or demarcated with either ' or "
+#    symbols, however comments may be added only after demarcated values lest #
+#    would otherwise never be allowed as part of a value.
+# 4. Values may be dedented or non-dedented HEREDOCs.  A non-dedented HEREDOC is
+#    identified as all the content between <<HERETAG and HERETAG, where HERETAG
+#    is any arbitrary sequence of capitalized letters and underscore characters.
+#    A dedented HEREDOC is indicated by prefixing the arbitrary HERETAG with a -
+#    symbol.  Whereas a non-dedented HEREDOC value preserves all whitespace
+#    between the HERETAGs, a dedented HEREDOC strips the leading whitespace from
+#    every line, up to the number of whitespace characters present on the first
+#    line, up to the first non-whitespace character.
+# 5. Unterminated HEREDOCs will generate a fatal error.
+# 6. Outside of HEREDOCs, # marks the start of a comment.  Entire lines may be
+#    commented.  Comments may appear at the end of any line except when it is a
+#    key=value line with no demarcation of the value.  HEREDOC values are
+#    treated verbatim, so # is not ignored.  Examples:
+#    KEY = VALUE   # THIS COMMENT BECOMES PART OF THE NON-DEMARCATED VALUE!
+#    KEY = 'Value' # This comment is ignored
+#    KEY = "Value" # This comment is also ignored
+# 7. Outside of HEREDOCs, blank lines are ignored.  HEREDOC values are treated
+#    verbatim, so blank lines become part of the value.
+# 8. Values can be read from external files by using the form:
+#    KEY = <@ /path/to/file-containing-the-value
+# 9. Values can be read from executable statements by using the form:
+#    KEY = <$ some-executable-command-sequence-that-writes-to-STDOUT
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
 	echo "ERROR:  You may not call $0 directly." >&2
 	exit 1
-fi
-
-# Define functions only once
-if type parseConfigFile &>/dev/null; then
-	exit 0
 fi
 
 function parseConfigFile {

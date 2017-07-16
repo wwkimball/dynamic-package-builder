@@ -14,10 +14,15 @@ _libDir="${_myDir}/lib"
 _funcDir="${_libDir}/func"
 readonly _myDir _myFileName _myLibDir _myVersion _pwDir
 
+# Bail if the file cannot be sourced without error
+if ! source "${_myLibDir}"/set-logger.sh; then
+	echo "ERROR:  Unable to import the logger source." >&2
+	exit 3
+fi
+
 # Prohibit running as root
 if [ 0 -eq $(id -u) ]; then
-	echo "ERROR:  You must not run ${_myFileName} as root!" >&2
-	exit 126
+	errorOut 126 "You must not run ${_myFileName} as root!" >&2
 fi
 
 # Bash 4.3+ is required
@@ -25,26 +30,32 @@ if [[ $BASH_VERSION =~ ^([0-9]+\.[0-9]+).+$ ]]; then
 	bashMajMin=${BASH_REMATCH[1]}
 	bashMinVer='4.3'
 	if [ 0 -ne $(bc <<< "${bashMinVer} > ${bashMajMin}") ]; then
-		echo "ERROR:  bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}." >&2
-		exit 127
+		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}." >&2
 	fi
 	unset bashMajMin bashMinVer
 else
-	echo "ERROR:  Unable to identify the installed version of bash." >&2
-	exit 128
+	errorOut 128 "Unable to identify the installed version of bash." >&2
 fi
 
 # Define the global configuration settings map
 declare -A _globalSettings
 
 # Process command-line arguments
-source "${_myLibDir}"/process-args.sh
+if ! source "${_myLibDir}"/process-args.sh; then
+	echo "ERROR:  Unable to import the argument processing source." >&2
+	exit 3
+fi
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, like the primary workspace directory and
 # other routine configuration like whether to build the full RPM construction
 # directory tree.
-source "${_myLibDir}"/process-core-config-file.sh
+if ! source "${_myLibDir}"/process-core-config-file.sh; then
+	echo "ERROR:  Unable to import the core config processing source." >&2
+	exit 3
+fi
+
+# Optionally build the RPM workspace directory tree
 
 # Optionally destroy all *.spec files in the RPM specs directory, presumably
 # because they are to be dynamically reconstructed.

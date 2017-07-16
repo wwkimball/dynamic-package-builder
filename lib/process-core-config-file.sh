@@ -7,33 +7,31 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
-# Do nothing when there is nothing to do
-configSource="${_globalSettings[GLOBAL_CONFIG_SOURCE]}"
-if [ -z "$configSource" ]; then
-	exit 0
-fi
-
 # Import helper functions
 if ! source "${_funcDir}"/process-config-file.sh; then
-	echo "ERROR:  Unable to source process-config-file.sh." >&2
-	exit 2
+	echo "ERROR:  Unable to import the config file processor." >&2
+	exit 3
 fi
 
 # The configuration source may be a file or directory.  When it is a directory,
 # attempt to source every file within it in alphabetical order.
+configSource="${_globalSettings[GLOBAL_CONFIG_SOURCE]}"
 hasConfigError=false
 if [ -d "$configSource" ]; then
 	while IFS= read -r -d '' configFile; do
 		if ! parseConfigFile _globalSettings "$configFile"; then
-			echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
+			logError "Unable to read from configuration file, ${configFile}." >&2
 			hasConfigError=true
 		fi
 	done < <(find "$configSource" -maxdepth 1 -type f -iname '*.conf' -print0)
 elif [ -e "$configSource" ]; then
 	if ! parseConfigFile _globalSettings "$configFile"; then
-		echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
+		logError "Unable to read from configuration file, ${configFile}." >&2
 		hasConfigError=true
 	fi
+elif ${_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]}; then
+	# User-specified settings file does not exit
+	logWarning "No settings file found at ${configSource}."
 fi
 
 # Abort on error
