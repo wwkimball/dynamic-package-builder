@@ -14,10 +14,18 @@ _libDir="${_myDir}/lib"
 _funcDir="${_libDir}/func"
 readonly _myDir _myFileName _myLibDir _myVersion _pwDir
 
-# Bash 4.x is required
-if (( ${BASH_VERSION%%.*} < 4 )); then
-	echo "ERROR:  bash version 4 or higher is required.  You have ${BASH_VERSION}." >&2
-	exit 127
+# Bash 4.3+ is required
+if [[ $BASH_VERSION =~ ^([0-9]+\.[0-9]+).+$ ]]; then
+	bashMajMin=${BASH_REMATCH[1]}
+	bashMinVer='4.3'
+	if [ 0 -ne $(bc <<< "${bashMinVer} > ${bashMajMin}") ]; then
+		echo "ERROR:  bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}." >&2
+		exit 127
+	fi
+	unset bashMajMin bashMinVer
+else
+	echo "ERROR:  Unable to identify the installed version of bash." >&2
+	exit 128
 fi
 
 # Prohibit running as root
@@ -39,5 +47,7 @@ source "${_myLibDir}"/process-args.sh
 source "${_myLibDir}"/process-core-config-file.sh
 
 cat <<EOF
+
+Known Settings:
 WORKSPACE: ${_configMap[WORKSPACE]}
 EOF

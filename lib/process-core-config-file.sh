@@ -24,13 +24,13 @@ fi
 hasConfigError=false
 if [ -d "$configSource" ]; then
 	while IFS= read -r -d '' configFile; do
-		if ! parseConfigFile "$configFile"; then
+		if ! parseConfigFile _configMap "$configFile"; then
 			echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
 			hasConfigError=true
 		fi
 	done < <(find "$configSource" -maxdepth 1 -type f -iname '*.conf' -print0)
 elif [ -e "$configSource" ]; then
-	if ! parseConfigFile "$configFile"; then
+	if ! parseConfigFile _configMap "$configFile"; then
 		echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
 		hasConfigError=true
 	fi
@@ -41,12 +41,13 @@ if $hasConfigError; then
 	exit 3
 fi
 
-# Report all gathered configuration values
-echo
-echo "Accepted Configuration Values:"
-for configKey in "${!_configMap[@]}"; do
-  echo "...${configKey} => ${_configMap[$configKey]}"
-done
+## Report all gathered configuration values
+#echo
+#echo "Accepted Configuration Values:"
+#for configKey in "${!_configMap[@]}"; do
+#  echo "...${configKey} => ${_configMap[$configKey]}"
+#done
+#echo
 
 # Cleanup
 unset configSource configFile hasConfigError configKey parseConfigFile

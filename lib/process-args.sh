@@ -95,7 +95,7 @@ declare -a cliArguments=("$@")
 argumentCount=${#cliArguments[@]}
 for ((i = 0; i < argumentCount; i++)); do
 	testArgument=${cliArguments[$i]}
-	echo "index:${i}: [${testArgument}]"
+	echo "Positional argument index:${i}: [${testArgument}]"
 
 	_positionalArgs="${testArgument}"
 done
