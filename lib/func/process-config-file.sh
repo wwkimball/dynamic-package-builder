@@ -13,9 +13,8 @@ if type parseConfigFile &>/dev/null; then
 fi
 
 function parseConfigFile {
-	local configMap=${1:?"ERROR:  An associative array variable name must be specified as the first positional arugment to ${BASH_FUNC[0]}."}
-	local configFile=$2		# Not critical when empty
-	local -n indirectMap="${configMap}"
+	local -n configMap=${1:?"ERROR:  An associative array variable name must be specified as the first positional arugment to ${BASH_FUNC[0]}."}
+	local configFile=${2:?"ERROR:  A configuration file must be specified as the second positional argument to ${BASH_FUNC[0]}."}
 	local configLine configKey configValue activeHereDocTag \
 		dedentHereDocLength=-1 \
 		dedentHereDoc=false \
@@ -25,8 +24,9 @@ function parseConfigFile {
 		returnState=0
 
 	# Do nothing when there is nothing to do
-	if [ -z "$configFile" ]; then
-		return 1
+	if [ ! -f "$configFile" ]; then
+		echo "ERROR:  Configuration file not found:  ${configFile}." >&2
+		return 2
 	fi
 
 	while IFS= read -r configLine; do
@@ -40,7 +40,7 @@ function parseConfigFile {
 				dedentHereDocLength=-1
 				hereDocStartLine=-1
 				activeHereDocTag=
-				indirectMap[$configKey]="${configValue:: -1}"
+				configMap[$configKey]="${configValue:: -1}"
 			else
 				# Concatenate the line to the active HEREDOC
 				if $dedentHereDoc; then
@@ -64,12 +64,10 @@ function parseConfigFile {
 
 		# Ignore blank lines outside a HEREDOC
 		elif [[ $configLine =~ ^[[:space:]]*$ ]]; then
-			#echo "!! ignoring blank line outside HEREDOC"
 			continue
 
 		# Ignore full-comment lines outside a HEREDOC
 		elif [[ $configLine =~ ^[[:space:]]*#.*$ ]]; then
-			#echo "!! ignoring full-comment line outside HEREDOC"
 			continue
 
 		# HEREDOC, multi-line values, not dedented
@@ -80,7 +78,6 @@ function parseConfigFile {
 			configKey=${BASH_REMATCH[1]^^}
 			activeHereDocTag=${BASH_REMATCH[2]}
 			configValue=
-			#echo "!! Non-dedented HEREDOC start:  ${activeHereDocTag}."
 
 		# HEREDOC, multi-line values, dedented
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<\<-([A-Z_]+)$ ]]; then
@@ -91,7 +88,6 @@ function parseConfigFile {
 			configKey=${BASH_REMATCH[1]^^}
 			activeHereDocTag=${BASH_REMATCH[2]}
 			configValue=
-			#echo "!! Dedented HEREDOC start:  ${activeHereDocTag}."
 
 		# Permit file input for values
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<@[[:space:]]*(.+)$ ]]; then
@@ -106,8 +102,7 @@ function parseConfigFile {
 			if [ -f "$readValueFromFile" ]; then
 				configValue=$(cat "$readValueFromFile")
 				if [ ! -z "$configValue" ]; then
-					indirectMap[$configKey]="$configValue"
-					#echo "!! F:${configKey}->${configValue}"
+					configMap[$configKey]="$configValue"
 				fi
 			else
 				echo "WARNING:  No such file specified in ${configFile}:${lineNumber}:  ${readValueFromFile}." >&2
@@ -121,8 +116,7 @@ function parseConfigFile {
 			if [ 0 -ne $? ]; then
 				echo "WARNING:  Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}." >&2
 			else
-				indirectMap[$configKey]="$configValue"
-				#echo "!! E:${configKey}->${configValue}"
+				configMap[$configKey]="$configValue"
 			fi
 
 		# Permit comments on lines with demarcated values
@@ -131,15 +125,13 @@ function parseConfigFile {
 		then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			indirectMap[$configKey]="$configValue"
-			#echo "!! A:${configKey}->${configValue}"
+			configMap[$configKey]="$configValue"
 
 		# Uncommented, bare lines; comments become value, so don't do this
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			indirectMap[$configKey]="$configValue"
-			#echo "!! B:${configKey}->${configValue}"
+			configMap[$configKey]="$configValue"
 
 		# Unrecognized line format
 		else
