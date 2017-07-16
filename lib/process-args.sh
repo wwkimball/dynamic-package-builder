@@ -8,7 +8,11 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 function printVersion {
-	echo $_myVersion
+	cat <<EOVER
+${_myFileName} ${_myVersion}
+Copyright (c) 2003-2017, William W. Kimball Jr. MBA MSIS
+License:  ISC
+EOVER
 }
 
 function printUsage {
@@ -16,9 +20,18 @@ function printUsage {
 }
 
 function printHelp {
-	echo "Help yourself."
-	echo "Version: $(printVersion)"
+	cat <<EOHELP
+Help yourself.
+
+$(printVersion)
+
+$(cat "${_myDir}"/LICENSE)
+EOHELP
 }
+
+# Define global configuration defaults
+_globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
+_globalSettings[WORKSPACE]=${WORKSPACE:-$(pwd)}
 
 # Process command-line arguments.  Allow environment variables to be used to set
 # default values, but command-line arguments override them.  Any positional
@@ -32,19 +45,41 @@ while [ $# -gt 0 ]; do
 			exit 0
 		;;
 
-		# Set the configuration source
-		-c|--config)
+		# Version query
+		-v|--version)
+			printVersion
+			exit 0
+		;;
+
+		# Set the core configuration source
+		-s|--settings)
 			if [ -z "$2" ]; then
-				echo "ERROR:  -c|--config requires a value." >&2
+				echo "ERROR:  -s|--settings requires a value." >&2
 				hasCommandLineErrors=true
 			else
-				_configMap[CONFIG_SOURCE]="$2"
+				_globalSettings[GLOBAL_CONFIG_SOURCE]="$2"
 				shift
 			fi
 			shift
 		;;
-		--config=*)
-			_configMap[CONFIG_SOURCE]="${1#*=}"
+		--settings=*)
+			_globalSettings[GLOBAL_CONFIG_SOURCE]="${1#*=}"
+			shift
+		;;
+
+		# Set the RPM spec source
+		-r|--rpmspecs)
+			if [ -z "$2" ]; then
+				echo "ERROR:  -r|--rpmspecs requires a value." >&2
+				hasCommandLineErrors=true
+			else
+				_globalSettings[RPM_SPECS_SOURCE]="$2"
+				shift
+			fi
+			shift
+		;;
+		--rpmspecs=*)
+			_globalSettings[RPM_SPECS_SOURCE]="${1#*=}"
 			shift
 		;;
 
@@ -54,13 +89,13 @@ while [ $# -gt 0 ]; do
 				echo "ERROR:  -w|--workspace requires a value." >&2
 				hasCommandLineErrors=true
 			else
-				_configMap[WORKSPACE]="$2"
+				_globalSettings[WORKSPACE]="$2"
 				shift
 			fi
 			shift
 		;;
 		--workspace=*)
-			_configMap[WORKSPACE]="${1#*=}"
+			_globalSettings[WORKSPACE]="${1#*=}"
 			shift
 		;;
 
@@ -89,16 +124,8 @@ if $hasCommandLineErrors; then
 	exit 1
 fi
 
-# Copy any remaining arguments into _positionalArgs but strip off any unclean
-# demarcation symbols.
-declare -a cliArguments=("$@")
-argumentCount=${#cliArguments[@]}
-for ((i = 0; i < argumentCount; i++)); do
-	testArgument=${cliArguments[$i]}
-	echo "Positional argument index:${i}: [${testArgument}]"
-
-	_positionalArgs="${testArgument}"
-done
+# Copy any remaining arguments as pass-through aguments for rpmbuild.
+_globalSettings[RPMBUILD_ARGS]="$*"
 
 # Cleanup
 unset printVersion printUsage printHelp \

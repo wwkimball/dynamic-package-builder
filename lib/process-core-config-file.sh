@@ -8,7 +8,7 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Do nothing when there is nothing to do
-configSource="${_configMap[CONFIG_SOURCE]}"
+configSource="${_globalSettings[GLOBAL_CONFIG_SOURCE]}"
 if [ -z "$configSource" ]; then
 	exit 0
 fi
@@ -24,13 +24,13 @@ fi
 hasConfigError=false
 if [ -d "$configSource" ]; then
 	while IFS= read -r -d '' configFile; do
-		if ! parseConfigFile _configMap "$configFile"; then
+		if ! parseConfigFile _globalSettings "$configFile"; then
 			echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
 			hasConfigError=true
 		fi
 	done < <(find "$configSource" -maxdepth 1 -type f -iname '*.conf' -print0)
 elif [ -e "$configSource" ]; then
-	if ! parseConfigFile _configMap "$configFile"; then
+	if ! parseConfigFile _globalSettings "$configFile"; then
 		echo "ERROR:  Unable to read from configuration file, ${configFile}." >&2
 		hasConfigError=true
 	fi
@@ -44,8 +44,8 @@ fi
 ## Report all gathered configuration values
 #echo
 #echo "Accepted Configuration Values:"
-#for configKey in "${!_configMap[@]}"; do
-#  echo "...${configKey} => ${_configMap[$configKey]}"
+#for configKey in "${!_globalSettings[@]}"; do
+#  echo "...${configKey} => ${_globalSettings[$configKey]}"
 #done
 #echo
 
