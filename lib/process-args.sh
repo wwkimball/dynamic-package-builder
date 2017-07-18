@@ -33,8 +33,10 @@ EOHELP
 _globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
 _globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
 _globalSettings[WORKSPACE]=${WORKSPACE:-$(pwd)}
-_globalSettings[USE_TEMP_WORKSPACE]=false
+_globalSettings[USE_TEMP_WORKSPACE]=${USE_TEMP_WORKSPACE:-false}
 _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
+_globalSettings[SPECS_DIRECTORY]=${SPECS_DIRECTORY:-$(pwd)/SPECS}
+_globalSettings[SOURCES_DIRECTORY]=${SOURCES_DIRECTORY:-$(pwd)/SOURCES}
 
 _globalSettings[BUILD_WORKSPACE_TREE]=${BUILD_WORKSPACE_TREE:-true}
 _globalSettings[FLUSH_OLD_SPECS]=false
@@ -121,23 +123,13 @@ while [ $# -gt 0 ]; do
 			fi
 		;;
 
-		# Control whether to use a temporary workspace
-		-t|--tempworkspace)
-			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
-			_globalSettings[BUILD_WORKSPACE_TREE]=true
-		;;
-		-T|--notempworkspace)
-			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
-			_globalSettings[BUILD_WORKSPACE_TREE]=false
-		;;
-
-		# Set the RPM spec source
+		# Set the RPM specs directory
 		-r|--rpmspecs)
 			if [ -z "$2" ]; then
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[RPM_SPECS_SOURCE]="$2"
+				_globalSettings[SPECS_DIRECTORY]="$2"
 				shift
 			fi
 		;;
@@ -147,8 +139,38 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[RPM_SPECS_SOURCE]="$testValue"
+				_globalSettings[SPECS_DIRECTORY]="$testValue"
 			fi
+		;;
+
+		# Set the RPM sources directory
+		-s|--sources)
+			if [ -z "$2" ]; then
+				logError "-s|--sources requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[SOURCES_DIRECTORY]="$2"
+				shift
+			fi
+		;;
+		--sources=*)
+			testValue="${1#*=}"
+			if [ -z "$testValue" ]; then
+				logError "--sources= requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[SOURCES_DIRECTORY]="$testValue"
+			fi
+		;;
+
+		# Control whether to use a temporary workspace
+		-t|--tempworkspace)
+			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
+			_globalSettings[USE_TEMP_WORKSPACE]=true
+		;;
+		-T|--notempworkspace)
+			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
+			_globalSettings[USE_TEMP_WORKSPACE]=false
 		;;
 
 		# Set the working directory
@@ -169,6 +191,14 @@ while [ $# -gt 0 ]; do
 			else
 				_globalSettings[WORKSPACE]="$testValue"
 			fi
+		;;
+
+		# Control whether to use a temporary workspace
+		-x|--execspecs)
+			_globalSettings[EXECUTABLE_SPECS]=true
+		;;
+		-X|--noexecspecs)
+			_globalSettings[EXECUTABLE_SPECS]=false
 		;;
 
 		# Explicit start of positional arguments
