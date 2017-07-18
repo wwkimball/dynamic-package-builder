@@ -35,6 +35,12 @@
 #    KEY = <@ /path/to/file-containing-the-value
 # 9. Values can be read from executable statements by using the form:
 #    KEY = <$ some-executable-command-sequence-that-writes-to-STDOUT
+# 10. All key names are cast to upper-case, so the following are equivalent:
+#    key = value
+#    KEY = value
+#    Key = value
+# 11. Key names must begin with an alphabetic character but may otherwise
+#    consist of any alphanumeric characters and the _ symbol.
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
