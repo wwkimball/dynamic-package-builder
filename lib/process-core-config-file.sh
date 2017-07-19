@@ -12,7 +12,7 @@ if ! source "${_funcDir}"/process-config-file.sh; then
 	errorOut 3 "Unable to import the config file processor."
 fi
 
-# Set configuration rules
+# Set configuration rules (allowable keys and their values)
 declare -A configValueRules
 configValueRules[EXECUTABLE_SPECS]='^(true|false)$'
 configValueRules[GLOBAL_CONFIG_SOURCE]='^.+$'
