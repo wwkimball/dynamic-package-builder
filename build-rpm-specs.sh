@@ -22,7 +22,7 @@ fi
 
 # Prohibit running as root
 if [ 0 -eq $(id -u) ]; then
-	errorOut 126 "You must not run ${_myFileName} as root!" >&2
+	errorOut 126 "You must not run ${_myFileName} as root!"
 fi
 
 # Bash 4.3+ is required
@@ -30,11 +30,11 @@ if [[ $BASH_VERSION =~ ^([0-9]+\.[0-9]+).+$ ]]; then
 	bashMajMin=${BASH_REMATCH[1]}
 	bashMinVer='4.3'
 	if [ 0 -ne $(bc <<< "${bashMinVer} > ${bashMajMin}") ]; then
-		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}." >&2
+		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}."
 	fi
 	unset bashMajMin bashMinVer
 else
-	errorOut 128 "Unable to identify the installed version of bash." >&2
+	errorOut 128 "Unable to identify the installed version of bash."
 fi
 
 # Define the global configuration settings map
@@ -42,23 +42,20 @@ declare -A _globalSettings
 
 # Process command-line arguments
 if ! source "${_myLibDir}"/process-args.sh; then
-	echo "ERROR:  Unable to import the argument processing source." >&2
-	exit 3
+	errorOut 3 "Unable to import the argument processing source."
 fi
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, not each RPM.
+logDebug "Processing the global configuration file(s)..."
 if ! source "${_myLibDir}"/process-core-config-file.sh; then
-	echo "ERROR:  Unable to import the core config processing source." >&2
-	exit 3
+	errorOut 3 "Unable to import the core config processing source."
 fi
 
-# Optionally build the RPM workspace directory tree
-if ${_globalSettings[BUILD_WORKSPACE_TREE]}; then
-	logInfo "Preparing the RPM build workspace at ${_globalSettings[WORKSPACE]}."
-	if ! mkdir -p "${_globalSettings[WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
-		errorOut 4 "\n\nERROR:  Unable to create RPM building workspace at ${_globalSettings[WORKSPACE]}."
-	fi
+# Build the mandatory RPM workspace directory tree
+logInfo "Preparing the RPM build workspace at ${_globalSettings[WORKSPACE]}."
+if ! mkdir -p "${_globalSettings[WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
+	errorOut 4 "Unable to create RPM building workspace at ${_globalSettings[WORKSPACE]}."
 fi
 
 # Optionally destroy all *.spec files in the RPM specs directory, presumably
