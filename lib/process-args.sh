@@ -32,13 +32,15 @@ EOHELP
 # Define global configuration defaults
 _globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
 _globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
-_globalSettings[WORKSPACE]=${WORKSPACE:-$(pwd)}
+_globalSettings[WORKSPACE]=${WORKSPACE:-${_pwDir}}
 _globalSettings[USE_TEMP_WORKSPACE]=${USE_TEMP_WORKSPACE:-false}
 _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
-_globalSettings[SPECS_DIRECTORY]=${SPECS_DIRECTORY:-$(pwd)/SPECS}
-_globalSettings[SOURCES_DIRECTORY]=${SOURCES_DIRECTORY:-$(pwd)/SOURCES}
+_globalSettings[SPECS_DIRECTORY]=${SPECS_DIRECTORY:-${_pwDir}/SPECS}
+_globalSettings[SOURCES_DIRECTORY]=${SOURCES_DIRECTORY:-${_pwDir}/SOURCES}
+_globalSettings[EXECUTABLE_SPECS]=${EXECUTABLE_SPECS:-false}
+_globalSettings[PREBUILD_COMMAND]=$PREBUILD_COMMAND
+_globalSettings[POSTBUILD_COMMAND]=$POSTBUILD_COMMAND
 
-_globalSettings[BUILD_WORKSPACE_TREE]=${BUILD_WORKSPACE_TREE:-true}
 _globalSettings[FLUSH_OLD_SPECS]=false
 
 # Process command-line arguments.  Allow environment variables to be used to set
@@ -101,11 +103,31 @@ while [ $# -gt 0 ]; do
 			exit 0
 		;;
 
+		# Set the pre-build command
+		-e|--precmd)
+			if [ -z "$2" ]; then
+				logError "-e|--precmd requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[PREBUILD_COMMAND]="$2"
+				shift
+			fi
+		;;
+		--precmd=*)
+			testValue="${1#*=}"
+			if [ -z "$testValue" ]; then
+				logError "--precmd= requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[PREBUILD_COMMAND]="$testValue"
+			fi
+		;;
+
 		# Set the core configuration source
 		-g|--globalconfig)
 			_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 			if [ -z "$2" ]; then
-				logError "-s|--settings requires a value."
+				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
 				_globalSettings[GLOBAL_CONFIG_SOURCE]="$2"
@@ -115,11 +137,31 @@ while [ $# -gt 0 ]; do
 		--globalconfig=*)
 			testValue="${1#*=}"
 			if [ -z "$testValue" ]; then
-				logError "--settings= requires a value."
+				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
 				_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 				_globalSettings[GLOBAL_CONFIG_SOURCE]="$testValue"
+			fi
+		;;
+
+		# Set the pre-build command
+		-o|--postcmd)
+			if [ -z "$2" ]; then
+				logError "-o|--postcmd requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[POSTBUILD_COMMAND]="$2"
+				shift
+			fi
+		;;
+		--postcmd=*)
+			testValue="${1#*=}"
+			if [ -z "$testValue" ]; then
+				logError "--postcmd= requires a value."
+				hasCommandLineErrors=true
+			else
+				_globalSettings[POSTBUILD_COMMAND]="$testValue"
 			fi
 		;;
 
