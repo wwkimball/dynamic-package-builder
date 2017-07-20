@@ -37,19 +37,10 @@ else
 	errorOut 128 "Unable to identify the installed version of bash."
 fi
 
-# Define the global configuration settings map
-declare -A _globalSettings
-
-# Process command-line arguments
-if ! source "${_myLibDir}"/process-args.sh; then
-	errorOut 3 "Unable to import the argument processing source."
-fi
-
-# Attempt to load the core configuration file(s).  These are for setting the
-# overall behavior of the RPM build, not each RPM.
-logVerbose "Processing the global configuration file(s)..."
-if ! source "${_myLibDir}"/process-core-config-file.sh; then
-	errorOut 3 "Unable to import the core config processing source."
+# Process global configuration
+logVerbose "Processing global configuration..."
+if ! source "${_myLibDir}"/define-global-settings.sh; then
+	errorOut 3 "Unable to import the global configuration source."
 fi
 
 # Prepare the workspace
