@@ -106,7 +106,9 @@ while [ $# -gt 0 ]; do
 				logError "-e|--precmd requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[PREBUILD_COMMAND]="$2"
+				storeAllowedSetting \
+					PREBUILD_COMMAND "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -116,7 +118,9 @@ while [ $# -gt 0 ]; do
 				logError "--precmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[PREBUILD_COMMAND]="$testValue"
+				storeAllowedSetting \
+					PREBUILD_COMMAND "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
@@ -135,7 +139,9 @@ while [ $# -gt 0 ]; do
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[GLOBAL_CONFIG_SOURCE]="$2"
+				storeAllowedSetting \
+					GLOBAL_CONFIG_SOURCE "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -146,7 +152,9 @@ while [ $# -gt 0 ]; do
 				hasCommandLineErrors=true
 			else
 				cliSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
-				cliSettings[GLOBAL_CONFIG_SOURCE]="$testValue"
+				storeAllowedSetting \
+					GLOBAL_CONFIG_SOURCE "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
@@ -186,7 +194,9 @@ while [ $# -gt 0 ]; do
 				logError "-o|--postcmd requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[POSTBUILD_COMMAND]="$2"
+				storeAllowedSetting \
+					POSTBUILD_COMMAND "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -196,7 +206,9 @@ while [ $# -gt 0 ]; do
 				logError "--postcmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[POSTBUILD_COMMAND]="$testValue"
+				storeAllowedSetting \
+					POSTBUILD_COMMAND "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
@@ -215,7 +227,9 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[SPECS_DIRECTORY]="$2"
+				storeAllowedSetting \
+					SPECS_DIRECTORY "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -225,7 +239,9 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[SPECS_DIRECTORY]="$testValue"
+				storeAllowedSetting \
+					SPECS_DIRECTORY "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
@@ -235,7 +251,9 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[SOURCES_DIRECTORY]="$2"
+				storeAllowedSetting \
+					SOURCES_DIRECTORY "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -245,7 +263,9 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[SOURCES_DIRECTORY]="$testValue"
+				storeAllowedSetting \
+					SOURCES_DIRECTORY "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
@@ -270,7 +290,9 @@ while [ $# -gt 0 ]; do
 				logError "-w|--workspace requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[WORKSPACE]="$2"
+				storeAllowedSetting \
+					WORKSPACE "$2" \
+					cliSettings _globalSettingsRules
 				shift
 			fi
 		;;
@@ -280,7 +302,9 @@ while [ $# -gt 0 ]; do
 				logError "--workspace= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[WORKSPACE]="$testValue"
+				storeAllowedSetting \
+					WORKSPACE "$testValue" \
+					cliSettings _globalSettingsRules
 			fi
 		;;
 
