@@ -58,7 +58,6 @@ function tryStoreAllowedSetting {
 	local configKey=${2:?"ERROR:  An associative array key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
 	local configLine=${3:-0}
 	local configValue="$4"
-	#local -n configMap
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
@@ -66,7 +65,6 @@ function tryStoreAllowedSetting {
 		logWarning "No configMap passed to ${BASH_FUNC[0]} for ${configKey} from ${configFile}."
 		return 1
 	fi
-	#configMap=$5
 
 	storeAllowedSetting \
 		"$configKey" "$configValue" \

@@ -44,7 +44,7 @@ if ! source "${_myLibDir}"/define-global-settings.sh; then
 fi
 
 # Prepare the workspace
-logVerbose "Preparing the workspace for RPM building..."
+logVerbose "Preparing the workspace for RPM building at ${_globalSettings[WORKSPACE]}..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
@@ -54,13 +54,3 @@ fi
 # If any *.rpm files were created, validate them.
 
 # Optionally move validated RPMs to a publication directory.
-
-logDebug "$(cat <<EOF
-
-Known Settings:
-WORKSPACE: ${_globalSettings[WORKSPACE]}
-
-Args for rpmbuild:
-${_globalSettings[RPMBUILD_ARGS]}
-EOF
-)"

@@ -39,12 +39,10 @@ if $hasConfigError; then
 fi
 
 # Report all gathered configuration values
-echo
 logDebug "Accepted Configuration Values:"
 for configKey in "${!_globalSettings[@]}"; do
   logDebug "...${configKey} => ${_globalSettings[$configKey]}"
 done
-echo
 
 # Cleanup
 unset configSource configFile hasConfigError configKey parseConfigFile

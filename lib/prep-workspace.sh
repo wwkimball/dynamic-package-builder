@@ -15,7 +15,7 @@ fi
 _globalSettings[WORKSPACE]="$workspaceDir"
 
 # Build the mandatory RPM workspace directory tree
-logInfo "Preparing the RPM build workspace at ${_globalSettings[WORKSPACE]}."
+logDebug "Ensuring the required RPM building subdirectories exist at ${_globalSettings[WORKSPACE]}."
 if ! mkdir -p "${_globalSettings[WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
 	errorOut 4 "Unable to create RPM building workspace at ${_globalSettings[WORKSPACE]}."
 fi
