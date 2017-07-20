@@ -7,6 +7,11 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
+# Import helper functions
+if ! source "${_funcDir}"/store-allowed-setting.sh; then
+	errorOut 3 "Unable to import the store-allowed-setting helper."
+fi
+
 function applyCLIArgsToGlobalConfig {
 	# Copy CLI arguments to the global configuration map
 	for configKey in "${!cliSettings[@]}"; do
@@ -14,28 +19,7 @@ function applyCLIArgsToGlobalConfig {
 	done
 }
 
-# Defaults < Environment Variables < Config File Settings < Command-Line Arguments
-
-# Define global configuration defaults
-declare -A _globalSettings
-_globalSettings[EXECUTABLE_SPECS]=${EXECUTABLE_SPECS:-false}
-_globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
-_globalSettings[OUTPUT_DEBUG]=${OUTPUT_DEBUG:-false}
-_globalSettings[OUTPUT_VERBOSE]=${OUTPUT_VERBOSE:-false}
-_globalSettings[POSTBUILD_COMMAND]=$POSTBUILD_COMMAND
-_globalSettings[POSTBUILD_ON_FAIL]=${POSTBUILD_ON_FAIL:-false}
-_globalSettings[POSTBUILD_ON_PARTIAL]=${POSTBUILD_ON_PARTIAL:-false}
-_globalSettings[PREBUILD_COMMAND]=$PREBUILD_COMMAND
-_globalSettings[PURGE_RPMS_ON_START]=${PURGE_RPMS_ON_START:-false}
-_globalSettings[PURGE_SPECS_ON_START]=${PURGE_SPECS_ON_START:-false}
-_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=${PURGE_TEMP_WORKSPACES_ON_START:-false}
-_globalSettings[RPMBUILD_ARGS]=$RPMBUILD_ARGS
-_globalSettings[SOURCES_DIRECTORY]=${SOURCES_DIRECTORY:-${_pwDir}/SOURCES}
-_globalSettings[SPECS_DIRECTORY]=${SPECS_DIRECTORY:-${_pwDir}/SPECS}
-_globalSettings[USE_TEMP_WORKSPACE]=${USE_TEMP_WORKSPACE:-false}
-_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
-_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
-_globalSettings[WORKSPACE]=${WORKSPACE:-${_pwDir}}
+# Defaults < Environment Variables < Config Settings < Command-Line Arguments
 
 # Set configuration rules (allowable configuration keys and their values)
 declare -A _globalSettingsRules
@@ -55,6 +39,38 @@ _globalSettingsRules[SOURCES_DIRECTORY]='^.+$'
 _globalSettingsRules[SPECS_DIRECTORY]='^.+$'
 _globalSettingsRules[USE_TEMP_WORKSPACE]='^(true|false)$'
 _globalSettingsRules[WORKSPACE]='^.+$'
+
+# Define global configuration defaults
+declare -A _globalSettings
+_globalSettings[EXECUTABLE_SPECS]=false
+_globalSettings[GLOBAL_CONFIG_SOURCE]="${_pwDir}/rpm-helpers.conf"
+_globalSettings[OUTPUT_DEBUG]=false
+_globalSettings[OUTPUT_VERBOSE]=false
+_globalSettings[POSTBUILD_COMMAND]=
+_globalSettings[POSTBUILD_ON_FAIL]=false
+_globalSettings[POSTBUILD_ON_PARTIAL]=false
+_globalSettings[PREBUILD_COMMAND]=
+_globalSettings[PURGE_RPMS_ON_START]=false
+_globalSettings[PURGE_SPECS_ON_START]=false
+_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
+_globalSettings[RPMBUILD_ARGS]=
+_globalSettings[SOURCES_DIRECTORY]="${_pwDir}/SOURCES"
+_globalSettings[SPECS_DIRECTORY]="${_pwDir}/SPECS"
+_globalSettings[USE_TEMP_WORKSPACE]=false
+_globalSettings[WORKSPACE]="${_pwDir}"
+
+# Define other, internal global settings
+_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
+_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
+
+# Import permissible environment variables
+for configKey in "${!_globalSettingsRules[@]}"; do
+	if [ ! -z "${!configKey}" ]; then
+		storeAllowedSetting \
+			"$configKey" "${!configKey}" \
+			_globalSettings _globalSettingsRules
+	fi
+done
 
 # Process command-line arguments, which override environment variables by the
 # same key.
@@ -78,4 +94,4 @@ fi
 applyCLIArgsToGlobalConfig
 
 # Cleanup
-unset applyCLIArgsToGlobalConfig cliSettings
+unset applyCLIArgsToGlobalConfig cliSettings configKey
