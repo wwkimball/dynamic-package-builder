@@ -74,26 +74,6 @@ $(cat "${_myDir}"/LICENSE)
 EOHELP
 }
 
-# Define global configuration defaults
-_globalSettings[EXECUTABLE_SPECS]=${EXECUTABLE_SPECS:-false}
-_globalSettings[GLOBAL_CONFIG_SOURCE]=${GLOBAL_CONFIG_SOURCE:-"${_pwDir}/rpm-helpers.conf"}
-_globalSettings[OUTPUT_DEBUG]=${OUTPUT_DEBUG:-false}
-_globalSettings[OUTPUT_VERBOSE]=${OUTPUT_VERBOSE:-false}
-_globalSettings[POSTBUILD_COMMAND]=$POSTBUILD_COMMAND
-_globalSettings[POSTBUILD_ON_FAIL]=${POSTBUILD_ON_FAIL:-false}
-_globalSettings[POSTBUILD_ON_PARTIAL]=${POSTBUILD_ON_PARTIAL:-false}
-_globalSettings[PREBUILD_COMMAND]=$PREBUILD_COMMAND
-_globalSettings[PURGE_RPMS_ON_START]=${PURGE_RPMS_ON_START:-false}
-_globalSettings[PURGE_SPECS_ON_START]=${PURGE_SPECS_ON_START:-false}
-_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=${PURGE_TEMP_WORKSPACES_ON_START:-false}
-_globalSettings[RPMBUILD_ARGS]=$RPMBUILD_ARGS
-_globalSettings[SOURCES_DIRECTORY]=${SOURCES_DIRECTORY:-${_pwDir}/SOURCES}
-_globalSettings[SPECS_DIRECTORY]=${SPECS_DIRECTORY:-${_pwDir}/SPECS}
-_globalSettings[USE_TEMP_WORKSPACE]=${USE_TEMP_WORKSPACE:-false}
-_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
-_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
-_globalSettings[WORKSPACE]=${WORKSPACE:-${_pwDir}}
-
 # Process command-line arguments.  Allow environment variables to be used to set
 # default values, but command-line arguments override them.  Any positional
 # arguments are saved to _positionalArgs.
@@ -103,16 +83,16 @@ while [ $# -gt 0 ]; do
 		# Control whether to destroy all *.spec files in SPECS_DIRECTORY during
 		# setup.
 		-c|--purgespecs)
-			_globalSettings[PURGE_SPECS_ON_START]=true
+			cliSettings[PURGE_SPECS_ON_START]=true
 		;;
 		-C|--nopurgespecs)
-			_globalSettings[PURGE_SPECS_ON_START]=false
+			cliSettings[PURGE_SPECS_ON_START]=false
 		;;
 
 		# Enable debugging output
 		-d|--debug)
-			_globalSettings[OUTPUT_VERBOSE]=true
-			_globalSettings[OUTPUT_DEBUG]=true
+			cliSettings[OUTPUT_VERBOSE]=true
+			cliSettings[OUTPUT_DEBUG]=true
 		;;
 
 		# Set the pre-build command
@@ -121,7 +101,7 @@ while [ $# -gt 0 ]; do
 				logError "-e|--precmd requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[PREBUILD_COMMAND]="$2"
+				cliSettings[PREBUILD_COMMAND]="$2"
 				shift
 			fi
 		;;
@@ -131,26 +111,26 @@ while [ $# -gt 0 ]; do
 				logError "--precmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[PREBUILD_COMMAND]="$testValue"
+				cliSettings[PREBUILD_COMMAND]="$testValue"
 			fi
 		;;
 
 		# Control whether to run POSTBUILD_COMMAND even when all RPM builds fail
 		-f|--postfail)
-			_globalSettings[POSTBUILD_ON_FAIL]=true
+			cliSettings[POSTBUILD_ON_FAIL]=true
 		;;
 		-F|--nopostfail)
-			_globalSettings[POSTBUILD_ON_FAIL]=false
+			cliSettings[POSTBUILD_ON_FAIL]=false
 		;;
 
 		# Set the core configuration source
 		-g|--globalconfig)
-			_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
+			cliSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 			if [ -z "$2" ]; then
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[GLOBAL_CONFIG_SOURCE]="$2"
+				cliSettings[GLOBAL_CONFIG_SOURCE]="$2"
 				shift
 			fi
 		;;
@@ -160,8 +140,8 @@ while [ $# -gt 0 ]; do
 				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
-				_globalSettings[GLOBAL_CONFIG_SOURCE]="$testValue"
+				cliSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
+				cliSettings[GLOBAL_CONFIG_SOURCE]="$testValue"
 			fi
 		;;
 
@@ -180,19 +160,19 @@ while [ $# -gt 0 ]; do
 		# Control whether to destroy all *.rpm files anywhere in
 		# ${WORKSPACE}/{RPMS,SRPMS} during setup.
 		-k|--purgerpms)
-			_globalSettings[PURGE_RPMS_ON_START]=true
+			cliSettings[PURGE_RPMS_ON_START]=true
 		;;
 		-K|--nopurgerpms)
-			_globalSettings[PURGE_RPMS_ON_START]=false
+			cliSettings[PURGE_RPMS_ON_START]=false
 		;;
 
 		# Control whether to purge all old temporary workspaces under WORKSPACE
 		# at the start of this run.
 		-m|--purgeoldtemps)
-			_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=true
+			cliSettings[PURGE_TEMP_WORKSPACES_ON_START]=true
 		;;
 		-M|--nopurgeoldtemps)
-			_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
+			cliSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
 		;;
 
 		# Set the pre-build command
@@ -201,7 +181,7 @@ while [ $# -gt 0 ]; do
 				logError "-o|--postcmd requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[POSTBUILD_COMMAND]="$2"
+				cliSettings[POSTBUILD_COMMAND]="$2"
 				shift
 			fi
 		;;
@@ -211,17 +191,17 @@ while [ $# -gt 0 ]; do
 				logError "--postcmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[POSTBUILD_COMMAND]="$testValue"
+				cliSettings[POSTBUILD_COMMAND]="$testValue"
 			fi
 		;;
 
 		# Control whether to run POSTBUILD_COMMAND when one or more, but not
 		# all, RPMs are successfully built.
 		-p|--postpartial)
-			_globalSettings[POSTBUILD_ON_PARTIAL]=true
+			cliSettings[POSTBUILD_ON_PARTIAL]=true
 		;;
 		-P|--nopostpartial)
-			_globalSettings[POSTBUILD_ON_PARTIAL]=false
+			cliSettings[POSTBUILD_ON_PARTIAL]=false
 		;;
 
 		# Set the RPM specs directory
@@ -230,7 +210,7 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[SPECS_DIRECTORY]="$2"
+				cliSettings[SPECS_DIRECTORY]="$2"
 				shift
 			fi
 		;;
@@ -240,7 +220,7 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[SPECS_DIRECTORY]="$testValue"
+				cliSettings[SPECS_DIRECTORY]="$testValue"
 			fi
 		;;
 
@@ -250,7 +230,7 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[SOURCES_DIRECTORY]="$2"
+				cliSettings[SOURCES_DIRECTORY]="$2"
 				shift
 			fi
 		;;
@@ -260,23 +240,23 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[SOURCES_DIRECTORY]="$testValue"
+				cliSettings[SOURCES_DIRECTORY]="$testValue"
 			fi
 		;;
 
 		# Control whether to use a temporary workspace
 		-t|--tempworkspace)
-			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
-			_globalSettings[USE_TEMP_WORKSPACE]=true
+			cliSettings[USER_SET_USE_TEMP_WORKSPACE]=true
+			cliSettings[USE_TEMP_WORKSPACE]=true
 		;;
 		-T|--notempworkspace)
-			_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
-			_globalSettings[USE_TEMP_WORKSPACE]=false
+			cliSettings[USER_SET_USE_TEMP_WORKSPACE]=true
+			cliSettings[USE_TEMP_WORKSPACE]=false
 		;;
 
 		# Enable verbose output
 		-v|--verbose)
-			_globalSettings[OUTPUT_VERBOSE]=true
+			cliSettings[OUTPUT_VERBOSE]=true
 		;;
 
 		# Set the working directory
@@ -285,7 +265,7 @@ while [ $# -gt 0 ]; do
 				logError "-w|--workspace requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[WORKSPACE]="$2"
+				cliSettings[WORKSPACE]="$2"
 				shift
 			fi
 		;;
@@ -295,16 +275,16 @@ while [ $# -gt 0 ]; do
 				logError "--workspace= requires a value."
 				hasCommandLineErrors=true
 			else
-				_globalSettings[WORKSPACE]="$testValue"
+				cliSettings[WORKSPACE]="$testValue"
 			fi
 		;;
 
 		# Control whether to run executablse in SPECS_DIRECTORY
 		-x|--execspecs)
-			_globalSettings[EXECUTABLE_SPECS]=true
+			cliSettings[EXECUTABLE_SPECS]=true
 		;;
 		-X|--noexecspecs)
-			_globalSettings[EXECUTABLE_SPECS]=false
+			cliSettings[EXECUTABLE_SPECS]=false
 		;;
 
 		# Explicit start of positional arguments
@@ -334,9 +314,8 @@ if $hasCommandLineErrors; then
 fi
 
 # Copy any remaining arguments as pass-through aguments for rpmbuild.
-_globalSettings[RPMBUILD_ARGS]="$*"
+cliSettings[RPMBUILD_ARGS]="$*"
 
 # Cleanup
 unset printVersion printUsage printHelp \
-	hasCommandLineErrors cliArguments argumentCount \
-	testValue
+	hasCommandLineErrors testValue
