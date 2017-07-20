@@ -111,6 +111,7 @@ while [ $# -gt 0 ]; do
 
 		# Enable debugging output
 		-d|--debug)
+			_globalSettings[OUTPUT_VERBOSE]=true
 			_globalSettings[OUTPUT_DEBUG]=true
 		;;
 

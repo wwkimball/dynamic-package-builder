@@ -47,12 +47,13 @@ fi
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, not each RPM.
-logDebug "Processing the global configuration file(s)..."
+logVerbose "Processing the global configuration file(s)..."
 if ! source "${_myLibDir}"/process-core-config-file.sh; then
 	errorOut 3 "Unable to import the core config processing source."
 fi
 
 # Prepare the workspace
+logVerbose "Preparing the workspace for RPM building..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
@@ -63,7 +64,7 @@ fi
 
 # Optionally move validated RPMs to a publication directory.
 
-cat <<EOF
+logDebug "$(cat <<EOF
 
 Known Settings:
 WORKSPACE: ${_globalSettings[WORKSPACE]}
@@ -71,3 +72,4 @@ WORKSPACE: ${_globalSettings[WORKSPACE]}
 Args for rpmbuild:
 ${_globalSettings[RPMBUILD_ARGS]}
 EOF
+)"

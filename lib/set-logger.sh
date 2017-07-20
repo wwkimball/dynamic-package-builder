@@ -8,13 +8,11 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Define color codes
-_colRed='\033[0;31m'
-_colYellow='\033[0;33m'
-_colGreen='\033[0;32m'
+_colLightRed='\033[0;91m'
+_colLightYellow='\033[0;93m'
+_colLightGreen='\033[0;92m'
 _colBlue='\033[0;34m'
-_colPurple='\033[0;35m'
-_colTeal='\033[0;36m'
-_colGray='\033[0;37m'
+_colDarkGray='\033[0;90m'
 _colEnd='\033[00m'
 
 ###
@@ -31,28 +29,35 @@ function _echoInColor {
 # Prints a colored ERROR prefix.
 ##
 function _echoPrefixError {
-	echo -e "$(_echoInColor $_colRed 'ERROR: ')"
+	echo -e "$(_echoInColor $_colLightRed 'ERROR: ')"
 }
 
 ###
 # Prints a colored WARNING prefix.
 ##
 function _echoPrefixWarning {
-	echo -e "$(_echoInColor $_colYellow 'WARNING: ')"
+	echo -e "$(_echoInColor $_colLightYellow 'WARNING: ')"
 }
 
 ###
 # Prints a colored INFO prefix.
 ##
 function _echoPrefixInfo {
-	echo -e "$(_echoInColor $_colGreen 'INFO: ')"
+	echo -e "$(_echoInColor $_colLightGreen 'INFO: ')"
+}
+
+###
+# Prints a colored verbose INFO prefix.
+##
+function _echoPrefixVerbose {
+	echo -e "$(_echoInColor $_colBlue 'INFO: ')"
 }
 
 ###
 # Prints a colored DEBUG prefix.
 ##
 function _echoPrefixDebug {
-	echo -e "$(_echoInColor $_colGray 'DEBUG: ')"
+	echo -e "$(_echoInColor $_colDarkGray 'DEBUG: ')"
 }
 
 ###
@@ -77,10 +82,25 @@ function logInfo {
 }
 
 ###
+# Prints a verbose-only INFO message
+##
+function logVerbose {
+	if [[ -v _globalSettings[OUTPUT_VERBOSE] ]] \
+		&& ${_globalSettings[OUTPUT_VERBOSE]}
+	then
+		echo -e "$(_echoPrefixVerbose) $@"
+	fi
+}
+
+###
 # Prints an DEBUG message
 ##
 function logDebug {
-	echo -e "$(_echoPrefixDebug) $@"
+	if [[ -v _globalSettings[OUTPUT_DEBUG] ]] \
+		&& ${_globalSettings[OUTPUT_DEBUG]}
+	then
+		echo -e "$(_echoPrefixDebug) $@"
+	fi
 }
 
 ###
