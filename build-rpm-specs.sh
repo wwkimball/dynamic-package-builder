@@ -52,17 +52,10 @@ if ! source "${_myLibDir}"/process-core-config-file.sh; then
 	errorOut 3 "Unable to import the core config processing source."
 fi
 
-# Build the mandatory RPM workspace directory tree
-logInfo "Preparing the RPM build workspace at ${_globalSettings[WORKSPACE]}."
-if ! mkdir -p "${_globalSettings[WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
-	errorOut 4 "Unable to create RPM building workspace at ${_globalSettings[WORKSPACE]}."
+# Prepare the workspace
+if ! source "${_myLibDir}"/prep-workspace.sh; then
+	errorOut 3 "Unable to import the workstation preparation source."
 fi
-
-# Optionally destroy all *.spec files in the RPM specs directory, presumably
-# because they are to be dynamically reconstructed.
-
-# Optionally run executables found in the RPM specs directory to potentially
-# create more specs files.
 
 # Run rpmbuild against every *.spec file in the RPM specs directory.
 
