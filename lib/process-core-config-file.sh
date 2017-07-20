@@ -8,8 +8,8 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/process-config-file.sh; then
-	errorOut 3 "Unable to import the config file processor."
+if ! source "${_funcDir}"/parse-config-file.sh; then
+	errorOut 3 "Unable to import the config file parser."
 fi
 
 # The configuration source may be a file or directory.  When it is a directory,

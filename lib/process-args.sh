@@ -7,6 +7,11 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
+# Import helper functions
+if ! source "${_funcDir}"/store-allowed-setting.sh; then
+	errorOut 3 "Unable to import the store-allowed-setting helper."
+fi
+
 function printVersion {
 	cat <<EOVER
 ${_myFileName} ${_myVersion}
@@ -314,7 +319,9 @@ if $hasCommandLineErrors; then
 fi
 
 # Copy any remaining arguments as pass-through aguments for rpmbuild.
-cliSettings[RPMBUILD_ARGS]="$*"
+if [ $# -gt 0 ]; then
+	cliSettings[RPMBUILD_ARGS]="$*"
+fi
 
 # Cleanup
 unset printVersion printUsage printHelp \

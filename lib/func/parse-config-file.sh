@@ -48,55 +48,10 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
-function __parseConfigFile_storeAllowedConfig {
-	local configKey="$1"
-	local configValue="$2"
-	local -n __configMap __valueRules
-	local regexTest forceAdd=false
-
-	# Bail out when the user fails to supply a config map.
-	if [ $# -lt 3 ]; then
-		logWarning "No __configMap passed to __parseConfigFile_storeAllowedConfig for [$configKey]"
-		return 1
-	fi
-	__configMap=$3
-
-	# Allow all when only a config map is available
-	if [ $# -gt 3 ]; then
-		__valueRules=$4
-		if [[ ! -v __valueRules[@] ]]; then
-			# There are no value rules
-			forceAdd=true
-			logDebug "Empty __valueRules passed to __parseConfigFile_storeAllowedConfig for [$configKey]"
-		fi
-	else
-		forceAdd=true
-		logDebug "Missing __valueRules argument to __parseConfigFile_storeAllowedConfig for [$configKey]"
-	fi
-	if $forceAdd; then
-		__configMap[$configKey]="$configValue"
-		return 0
-	fi
-
-	# Check whether the value is permissible
-	if [[ -v __valueRules[$configKey] ]]; then
-		# Empty rules allow everything
-		regexTest="${__valueRules[$configKey]}"
-		if [ -z "$regexTest" ]; then
-			regexTest='^.*$'
-		fi
-
-		if [[ $configValue =~ $regexTest ]]; then
-			__configMap[$configKey]="$configValue"
-		else
-			logWarning "Unacceptable value for key, $configKey: $configValue"
-			return 3
-		fi
-	else
-		logWarning "Unacceptable key, $configKey"
-		return 2
-	fi
-}
+# Import helper functions
+if ! source "${_funcDir}"/store-allowed-setting.sh; then
+	errorOut 3 "Unable to import the store-allowed-setting helper."
+fi
 
 function parseConfigFile {
 	local -n configMap=${1:?"ERROR:  An associative array variable name must be specified as the first positional arugment to ${BASH_FUNC[0]}."}
@@ -127,7 +82,7 @@ function parseConfigFile {
 				dedentHereDocLength=-1
 				hereDocStartLine=-1
 				activeHereDocTag=
-				__parseConfigFile_storeAllowedConfig \
+				storeAllowedSetting \
 					"$configKey" "${configValue:: -1}" \
 					configMap _valueRules
 			else
@@ -191,7 +146,7 @@ function parseConfigFile {
 			if [ -f "$readValueFromFile" ]; then
 				configValue=$(cat "$readValueFromFile")
 				if [ ! -z "$configValue" ]; then
-					__parseConfigFile_storeAllowedConfig \
+					storeAllowedSetting \
 						"$configKey" "$configValue" \
 						configMap _valueRules
 				fi
@@ -207,7 +162,7 @@ function parseConfigFile {
 			if [ 0 -ne $? ]; then
 				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
 			else
-				__parseConfigFile_storeAllowedConfig \
+				storeAllowedSetting \
 					"$configKey" "$configValue" \
 					configMap _valueRules
 			fi
@@ -218,7 +173,7 @@ function parseConfigFile {
 		then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			__parseConfigFile_storeAllowedConfig \
+			storeAllowedSetting \
 				"$configKey" "$configValue" \
 				configMap _valueRules
 
@@ -226,7 +181,7 @@ function parseConfigFile {
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			__parseConfigFile_storeAllowedConfig \
+			storeAllowedSetting \
 				"$configKey" "$configValue" \
 				configMap _valueRules
 
