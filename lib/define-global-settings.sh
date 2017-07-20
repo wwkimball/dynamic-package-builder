@@ -65,12 +65,17 @@ _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
 
 # Import permissible environment variables
 for configKey in "${!_globalSettingsRules[@]}"; do
-	if [ ! -z "${!configKey}" ]; then
+	configValue="${!configKey}"
+	if [ ! -z "$configValue" ]; then
 		storeAllowedSetting \
-			"$configKey" "${!configKey}" \
+			"$configKey" "$configValue" \
 			_globalSettings _globalSettingsRules
+		if [ 3 -eq $? ]; then
+			logWarning "Environment variable $configKey is set to an unnaceptable value:  ${configValue}"
+		fi
 	fi
 done
+unset configValue
 
 # Process command-line arguments, which override environment variables by the
 # same key.

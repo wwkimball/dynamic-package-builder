@@ -53,6 +53,49 @@ if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
 
+function tryStoreAllowedSetting {
+	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${BASH_FUNC[0]}."}
+	local configKey=${2:?"ERROR:  An associative array key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
+	local configLine=${3:-0}
+	local configValue="$4"
+	#local -n configMap
+	local storeResult
+
+	# Bail out when the user fails to supply a config map.
+	if [ $# -lt 5 ]; then
+		logWarning "No configMap passed to ${BASH_FUNC[0]} for ${configKey} from ${configFile}."
+		return 1
+	fi
+	#configMap=$5
+
+	storeAllowedSetting \
+		"$configKey" "$configValue" \
+		$5 $6
+	storeResult=$?
+
+	case $storeResult in
+		0)	# Successful storage
+			logDebug "Accepted configuration from ${configFile}:${configLine}:  ${configKey} = ${configValue}"
+		;;
+
+		1)	# No configMap
+			errorOut 1 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+		;;
+
+		2)	# Unacceptable configKey
+			logWarning "Ignoring unacceptable configuration key in ${configFile}:${configLine}:  ${configKey}"
+		;;
+
+		3)	# Unacceptable configValue
+			logWarning "Ignoring unacceptable configuration value for key ${configKey} in ${configFile}:${configLine}:  ${configValue}"
+		;;
+
+		*)	# Unknown result
+			errorOut 1 "Indeterminate error encountered while attempting to store configuration from ${configFile}:${configLine}:  ${configKey} = ${configValue}"
+		;;
+	esac
+}
+
 function parseConfigFile {
 	local -n configMap=${1:?"ERROR:  An associative array variable name must be specified as the first positional arugment to ${BASH_FUNC[0]}."}
 	local configFile=${2:?"ERROR:  A configuration file must be specified as the second positional argument to ${BASH_FUNC[0]}."}
@@ -82,9 +125,9 @@ function parseConfigFile {
 				dedentHereDocLength=-1
 				hereDocStartLine=-1
 				activeHereDocTag=
-				storeAllowedSetting \
-					"$configKey" "${configValue:: -1}" \
-					configMap _valueRules
+				tryStoreAllowedSetting \
+					"$configFile" "$configKey" $lineNumber \
+					"${configValue:: -1}" configMap _valueRules
 			else
 				# Concatenate the line to the active HEREDOC
 				if $dedentHereDoc; then
@@ -146,9 +189,9 @@ function parseConfigFile {
 			if [ -f "$readValueFromFile" ]; then
 				configValue=$(cat "$readValueFromFile")
 				if [ ! -z "$configValue" ]; then
-					storeAllowedSetting \
-						"$configKey" "$configValue" \
-						configMap _valueRules
+					tryStoreAllowedSetting \
+						"$configFile" "$configKey" $lineNumber \
+						"$configValue" configMap _valueRules
 				fi
 			else
 				logWarning "No such file specified in ${configFile}:${lineNumber}:  ${readValueFromFile}."
@@ -162,9 +205,9 @@ function parseConfigFile {
 			if [ 0 -ne $? ]; then
 				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
 			else
-				storeAllowedSetting \
-					"$configKey" "$configValue" \
-					configMap _valueRules
+				tryStoreAllowedSetting \
+					"$configFile" "$configKey" $lineNumber \
+					"$configValue" configMap _valueRules
 			fi
 
 		# Permit comments on lines with demarcated values
@@ -173,17 +216,17 @@ function parseConfigFile {
 		then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			storeAllowedSetting \
-				"$configKey" "$configValue" \
-				configMap _valueRules
+			tryStoreAllowedSetting \
+				"$configFile" "$configKey" $lineNumber \
+				"$configValue" configMap _valueRules
 
 		# Uncommented, bare lines; comments become value, so don't do this
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			storeAllowedSetting \
-				"$configKey" "$configValue" \
-				configMap _valueRules
+			tryStoreAllowedSetting \
+				"$configFile" "$configKey" $lineNumber \
+				"$configValue" configMap _valueRules
 
 		# Unrecognized line format
 		else

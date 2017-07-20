@@ -50,11 +50,11 @@ function storeAllowedSetting {
 		if [[ $configValue =~ $regexTest ]]; then
 			__configMap[$configKey]="$configValue"
 		else
-			logWarning "Unacceptable value for key, $configKey: $configValue"
+			# Unacceptable value
 			return 3
 		fi
 	else
-		logWarning "Unacceptable key, $configKey"
+		# Unacceptable key
 		return 2
 	fi
 }
