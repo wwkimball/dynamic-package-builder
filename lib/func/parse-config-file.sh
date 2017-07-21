@@ -209,8 +209,8 @@ function parseConfigFile {
 			fi
 
 		# Permit comments on lines with demarcated values
-		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\"([^\"]+)\"[[:space:]]*(#.*)?$ ]] \
-			|| [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\'([^\']+)\'[[:space:]]*(#.*)?$ ]]
+		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\"([^\"]*)\"[[:space:]]*(#.*)?$ ]] \
+			|| [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\'([^\']*)\'[[:space:]]*(#.*)?$ ]]
 		then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}

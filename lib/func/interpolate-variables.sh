@@ -10,7 +10,9 @@ fi
 
 function interpolateVariables {
 	local templateString=$1
+	local recursionLimit=${2:-5}
 	local fullTemplate fullVariable variableName replaceValue
+	local -A variablesSeen
 
 	# No nulls
 	if [ -z "$templateString" ]; then
@@ -27,12 +29,24 @@ function interpolateVariables {
 			replaceValue="${_globalSettings[$variableName]}"
 		fi
 
+		# Protect against interminable substitution loops caused when
+		# VAR1=${VAR2} && VAR2=${VAR1}
+		if [[ -v variablesSeen[$variableName ]]; then
+			variablesSeen[$variableName]=1
+		else
+			((variablesSeen[$variableName]++))
+			if [ $recursionLimit -lt ${variablesSeen[$variableName]} ]; then
+				echo "WARNING:  String interpolation cancelled due to more than ${recursionLimit} recursions on variable, ${variableName}, in ${templateString}." >&2
+				return 1
+			fi
+		fi
+
 		templateString=${fullTemplate//${fullVariable}/${replaceValue}}
 	done
 
 	# Treat a leading ~ as a variable
-	if [[ $templateString =~ ^(~|\$HOME|\$\{HOME\})(.*)$ ]]; then
-		templateString="${HOME}/${BASH_REMATCH[2]}"
+	if [[ $templateString =~ ^~(.*)$ ]]; then
+		templateString="${HOME}/${BASH_REMATCH[1]}"
 	fi
 
 	echo "$templateString"
