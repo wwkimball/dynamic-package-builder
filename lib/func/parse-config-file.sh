@@ -66,9 +66,7 @@ function tryStoreAllowedSetting {
 		return 1
 	fi
 
-	storeAllowedSetting \
-		"$configKey" "$configValue" \
-		$5 $6
+	storeAllowedSetting "$configKey" "$configValue" $5 $6
 	storeResult=$?
 
 	case $storeResult in
@@ -92,6 +90,8 @@ function tryStoreAllowedSetting {
 			errorOut 1 "Indeterminate error encountered while attempting to store configuration from ${configFile}:${configLine}:  ${configKey} = ${configValue}"
 		;;
 	esac
+
+	return $storeResult
 }
 
 function parseConfigFile {

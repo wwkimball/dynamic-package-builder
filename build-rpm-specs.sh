@@ -43,6 +43,8 @@ if ! source "${_myLibDir}"/define-global-settings.sh; then
 	errorOut 3 "Unable to import the global configuration source."
 fi
 
+# PREBUILD_COMMAND
+
 # Prepare the workspace
 logVerbose "Preparing the workspace for RPM building at ${_globalSettings[WORKSPACE]}..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
@@ -54,3 +56,9 @@ fi
 # If any *.rpm files were created, validate them.
 
 # Optionally move validated RPMs to a publication directory.
+
+# POSTBUILD_ON_PARTIAL
+# POSTBUILD_ON_FAIL
+# POSTBUILD_COMMAND
+
+# KEEP_FAILED_TEMP_WORKSPACE

@@ -139,9 +139,12 @@ while [ $# -gt 0 ]; do
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$2" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
+				fi
 				shift
 			fi
 		;;
@@ -151,10 +154,12 @@ while [ $# -gt 0 ]; do
 				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
-				cliSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$testValue" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
+				fi
 			fi
 		;;
 
@@ -227,9 +232,12 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					SPECS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_SPECS_DIRECTORY]=true
+				fi
 				shift
 			fi
 		;;
@@ -239,9 +247,12 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					SPECS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_SPECS_DIRECTORY]=true
+				fi
 			fi
 		;;
 
@@ -251,9 +262,12 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					SOURCES_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
+				fi
 				shift
 			fi
 		;;
@@ -263,9 +277,12 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				if storeAllowedSetting \
 					SOURCES_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
+				then
+					_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
+				fi
 			fi
 		;;
 

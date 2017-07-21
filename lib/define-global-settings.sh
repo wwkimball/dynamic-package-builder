@@ -1,5 +1,6 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+# Defaults < Environment Variables < Config Settings < Command-Line Arguments
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
@@ -11,6 +12,9 @@ fi
 if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
+if ! source "${_funcDir}"/interpolate-variables.sh; then
+	errorOut 3 "Unable to import the interpolate-variables helper."
+fi
 
 function applyCLIArgsToGlobalConfig {
 	# Copy CLI arguments to the global configuration map
@@ -18,8 +22,6 @@ function applyCLIArgsToGlobalConfig {
 		_globalSettings[$configKey]="${cliSettings[$configKey]}"
 	done
 }
-
-# Defaults < Environment Variables < Config Settings < Command-Line Arguments
 
 # Set configuration rules (allowable configuration keys and their values)
 declare -A _globalSettingsRules
@@ -60,7 +62,13 @@ _globalSettings[USE_TEMP_WORKSPACE]=false
 _globalSettings[WORKSPACE]="${_pwDir}"
 
 # Define other, internal global settings
+_globalSettings[TEMP_WORKSPACE_DIRECTORY]=
+_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]=
+_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]=rpm-workspace-
+_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]=.tmp
 _globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
+_globalSettings[USER_SET_SOURCES_DIRECTORY]=false
+_globalSettings[USER_SET_SPECS_DIRECTORY]=false
 _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
 
 # Import permissible environment variables
@@ -97,6 +105,22 @@ fi
 
 # Reapply CLI arguments to override config file settings, if any were set
 applyCLIArgsToGlobalConfig
+
+# Update dynamic global variables
+_globalSettings[TEMP_WORKSPACE_DIRECTORY]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
+_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}*${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
+
+# Interpolate all variables in the global configuration
+for configKey in "${!_globalSettings[@]}"; do
+  _globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}")
+done
+
+# Canonicalize paths in the global configuration
+for configKey in SOURCES_DIRECTORY SPECS_DIRECTORY TEMP_WORKSPACE_DIRECTORY \
+	TEMP_WORKSPACE_DIRECTORY_MASK WORKSPACE
+do
+	_globalSettings[$configKey]="$(realpath -m "${_globalSettings[$configKey]}")"
+done
 
 # Cleanup
 unset applyCLIArgsToGlobalConfig cliSettings configKey
