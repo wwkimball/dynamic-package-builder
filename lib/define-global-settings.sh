@@ -82,7 +82,7 @@ for configKey in "${!_globalSettingsRules[@]}"; do
 			"$configKey" "$configValue" \
 			_globalSettings _globalSettingsRules
 		if [ 3 -eq $? ]; then
-			logWarning "Environment variable $configKey is set to an unnaceptable value:  ${configValue}"
+			logWarning "Environment variable ${configKey} is set to an unnaceptable value:  ${configValue}"
 		fi
 	fi
 done
@@ -121,11 +121,24 @@ for configKey in "${!_globalSettings[@]}"; do
   fi
 done
 
-# Canonicalize paths in the global configuration
+# Canonicalize paths in the global configuration; none can be blank or root
 for configKey in SOURCES_DIRECTORY SPECS_DIRECTORY TEMP_WORKSPACE_DIRECTORY \
 	TEMP_WORKSPACE_DIRECTORY_MASK WORKSPACE
 do
-	_globalSettings[$configKey]="$(realpath -m "${_globalSettings[$configKey]}")"
+	userValue="${_globalSettings[$configKey]}"
+	if [ -z "$userValue" ]; then
+		errorOut 1 "${configKey} cannot be empty."
+	else
+		canonValue="$(realpath -m "$userValue")"
+
+		if [ -z "$canonValue" ]; then
+			errorOut 1 "${configKey} cannot be empty."
+		elif [ '/' == "$canonValue" ]; then
+			errorOut 1 "${configKey} cannot be root."
+		fi
+
+		_globalSettings[$configKey]="$canonValue"
+	fi
 done
 
 # DEBUG:  Report all gathered configuration values
@@ -136,4 +149,5 @@ logDebug "Accepted configuration values from all sources:"
 printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
-unset applyCLIArgsToGlobalConfig cliSettings configKey logDebugKV
+unset applyCLIArgsToGlobalConfig cliSettings configKey logDebugKV userValue \
+	canonValue
