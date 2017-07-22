@@ -12,6 +12,45 @@ if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
 
+function tryStoreAllowedSetting {
+	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${BASH_FUNC[0]}."}
+	local configValue="$2"
+	local storeResult
+
+	# Bail out when the user fails to supply a config map.
+	if [ $# -lt 3 ]; then
+		errorOut 42 "Bug!  No configMap passed to ${BASH_FUNC[0]} for ${configKey} from the command-line."
+		return 1
+	fi
+
+	storeAllowedSetting "$configKey" "$configValue" $3 $4
+	storeResult=$?
+
+	case $storeResult in
+		0)	# Successful storage
+			logDebug "Accepted configuration from the command-line:  ${configKey} = ${configValue}"
+		;;
+
+		1)	# No configMap
+			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+		;;
+
+		2)	# Unacceptable configKey
+			errorOut 1 "Unacceptable configuration key from the command-line:  ${configKey}"
+		;;
+
+		3)	# Unacceptable configValue
+			errorOut 1 "Unacceptable configuration value for key ${configKey} from the command-line:  ${configValue}"
+		;;
+
+		*)	# Unknown result
+			errorOut 42 "Bug!  Indeterminate error encountered while attempting to store configuration from the command-line:  ${configKey} = ${configValue}"
+		;;
+	esac
+
+	return $storeResult
+}
+
 function printVersion {
 	cat <<EOVER
 ${_myFileName} ${_myVersion}
@@ -106,7 +145,7 @@ while [ $# -gt 0 ]; do
 				logError "-e|--precmd requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					PREBUILD_COMMAND "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -118,7 +157,7 @@ while [ $# -gt 0 ]; do
 				logError "--precmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					PREBUILD_COMMAND "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -139,7 +178,7 @@ while [ $# -gt 0 ]; do
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$2" \
 					cliSettings _globalSettingsRules
 				then
@@ -154,7 +193,7 @@ while [ $# -gt 0 ]; do
 				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$testValue" \
 					cliSettings _globalSettingsRules
 				then
@@ -199,7 +238,7 @@ while [ $# -gt 0 ]; do
 				logError "-o|--postcmd requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					POSTBUILD_COMMAND "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -211,7 +250,7 @@ while [ $# -gt 0 ]; do
 				logError "--postcmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					POSTBUILD_COMMAND "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -232,7 +271,7 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				then
@@ -247,7 +286,7 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 				then
@@ -262,7 +301,7 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				then
@@ -277,7 +316,7 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				if storeAllowedSetting \
+				if tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 				then
@@ -307,7 +346,7 @@ while [ $# -gt 0 ]; do
 				logError "-w|--workspace requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					WORKSPACE "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -319,7 +358,7 @@ while [ $# -gt 0 ]; do
 				logError "--workspace= requires a value."
 				hasCommandLineErrors=true
 			else
-				storeAllowedSetting \
+				tryStoreAllowedSetting \
 					WORKSPACE "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -361,7 +400,7 @@ fi
 
 # Copy any remaining arguments as pass-through aguments for rpmbuild.
 if [ $# -gt 0 ]; then
-	cliSettings[RPMBUILD_ARGS]="$*"
+	tryStoreAllowedSetting RPMBUILD_ARGS "$*" cliSettings _globalSettingsRules
 fi
 
 # Cleanup

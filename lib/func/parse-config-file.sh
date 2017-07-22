@@ -55,14 +55,14 @@ fi
 
 function tryStoreAllowedSetting {
 	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${BASH_FUNC[0]}."}
-	local configKey=${2:?"ERROR:  An associative array key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
+	local configKey=${2:?"ERROR:  A configuration key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
 	local configLine=${3:-0}
 	local configValue="$4"
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 5 ]; then
-		logWarning "No configMap passed to ${BASH_FUNC[0]} for ${configKey} from ${configFile}."
+		errorOut 42 "Bug!  No configMap passed to ${BASH_FUNC[0]} for ${configKey} from ${configFile}."
 		return 1
 	fi
 
@@ -75,19 +75,19 @@ function tryStoreAllowedSetting {
 		;;
 
 		1)	# No configMap
-			errorOut 1 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
 		;;
 
 		2)	# Unacceptable configKey
-			logWarning "Ignoring unacceptable configuration key in ${configFile}:${configLine}:  ${configKey}"
+			errorOut 1 "Unacceptable configuration key in ${configFile}:${configLine}:  ${configKey}"
 		;;
 
 		3)	# Unacceptable configValue
-			logWarning "Ignoring unacceptable configuration value for key ${configKey} in ${configFile}:${configLine}:  ${configValue}"
+			errorOut 1 "Unacceptable configuration value for key ${configKey} in ${configFile}:${configLine}:  ${configValue}"
 		;;
 
 		*)	# Unknown result
-			errorOut 1 "Indeterminate error encountered while attempting to store configuration from ${configFile}:${configLine}:  ${configKey} = ${configValue}"
+			errorOut 42 "Bug!  Indeterminate error encountered while attempting to store configuration from ${configFile}:${configLine}:  ${configKey} = ${configValue}"
 		;;
 	esac
 

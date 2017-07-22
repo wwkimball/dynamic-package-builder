@@ -9,14 +9,20 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 function interpolateVariables {
-	local templateString=$1
-	local recursionLimit=${2:-5}
-	local fullTemplate fullVariable variableName replaceValue
+	local templateString="$1"
+	local recursionLimit=${INTERPOLATION_RECURSION_LIMIT:-5}
+	local fullTemplate fullVariable variableName replaceValue hasVarMap=false
+	local -n variableMap
 	local -A variablesSeen
 
 	# No nulls
 	if [ -z "$templateString" ]; then
 		return 0;
+	fi
+
+	if [ $# -gt 1 ]; then
+		variableMap=$2
+		hasVarMap=true
 	fi
 
 	while [[ $templateString =~ ^.*(\$\{?([A-Za-z0-9_]+)\}?).*$ ]]; do
@@ -25,13 +31,14 @@ function interpolateVariables {
 		variableName=${BASH_REMATCH[2]}
 		replaceValue="${!variableName}"
 
-		if [[ -v _globalSettings[$variableName] ]]; then
-			replaceValue="${_globalSettings[$variableName]}"
+		# Matches in the external variable map override environment variables
+		if $hasVarMap && [[ -v variableMap[$variableName] ]]; then
+			replaceValue="${variableMap[$variableName]}"
 		fi
 
 		# Protect against interminable substitution loops caused when
 		# VAR1=${VAR2} && VAR2=${VAR1}
-		if [[ -v variablesSeen[$variableName ]]; then
+		if [[ -v variablesSeen[$variableName] ]]; then
 			variablesSeen[$variableName]=1
 		else
 			((variablesSeen[$variableName]++))

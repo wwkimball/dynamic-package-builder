@@ -112,7 +112,10 @@ _globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[WORKSPACE]}/${
 
 # Interpolate all variables in the global configuration
 for configKey in "${!_globalSettings[@]}"; do
-  _globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}")
+  _globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}" _globalSettings)
+  if [ 0 -ne $? ]; then
+	errorOut 1 "Unable to interpolate all variables found in ${configKey}."
+  fi
 done
 
 # Canonicalize paths in the global configuration
@@ -120,6 +123,12 @@ for configKey in SOURCES_DIRECTORY SPECS_DIRECTORY TEMP_WORKSPACE_DIRECTORY \
 	TEMP_WORKSPACE_DIRECTORY_MASK WORKSPACE
 do
 	_globalSettings[$configKey]="$(realpath -m "${_globalSettings[$configKey]}")"
+done
+
+# Report all gathered configuration values
+logDebug "Accepted configuration values from all sources:"
+for configKey in "${!_globalSettings[@]}"; do
+  logDebug "...${configKey} => ${_globalSettings[$configKey]}"
 done
 
 # Cleanup
