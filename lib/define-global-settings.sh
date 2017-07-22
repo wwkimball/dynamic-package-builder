@@ -136,4 +136,4 @@ logDebug "Accepted configuration values from all sources:"
 printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
-unset applyCLIArgsToGlobalConfig cliSettings configKey
+unset applyCLIArgsToGlobalConfig cliSettings configKey logDebugKV
