@@ -46,7 +46,7 @@ fi
 # PREBUILD_COMMAND
 
 # Prepare the workspace
-logVerbose "Preparing the workspace for RPM building at ${_globalSettings[WORKSPACE]}..."
+logVerbose "Preparing for RPM building at ${_globalSettings[WORKSPACE]}..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
@@ -54,6 +54,10 @@ fi
 # Run rpmbuild against every *.spec file in the RPM specs directory.
 
 # If any *.rpm files were created, validate them.
+
+# If necessary, copy S?RPMS to S?RPM_DIRECTORY
+
+# If requested, FLATTEN_S?RPM_DIRECTORY
 
 # Optionally move validated RPMs to a publication directory.
 

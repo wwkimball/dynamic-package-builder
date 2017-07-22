@@ -19,16 +19,37 @@ if ! source "${_funcDir}"/print-ordered-hash.sh; then
 	errorOut 3 "Unable to import the print-ordered-hash helper."
 fi
 
+# Copy CLI arguments to the global configuration map
 function applyCLIArgsToGlobalConfig {
-	# Copy CLI arguments to the global configuration map
 	for configKey in "${!cliSettings[@]}"; do
 		_globalSettings[$configKey]="${cliSettings[$configKey]}"
+	done
+}
+
+# Copy config file settings to the global configuration map
+function applyConfFileSettingsToGlobalConfig {
+	for configKey in "${!confFileSettings[@]}"; do
+		_globalSettings[$configKey]="${confFileSettings[$configKey]}"
+
+		case "$configKey" in
+			SOURCES_DIRECTORY)
+				_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
+			;;
+			SPECS_DIRECTORY)
+				_globalSettings[USER_SET_SPECS_DIRECTORY]=true
+			;;
+			USE_TEMP_WORKSPACE)
+				_globalSettings[USER_SET_USE_TEMP_WORKSPACE]=true
+			;;
+		esac
 	done
 }
 
 # Set configuration rules (allowable configuration keys and their values)
 declare -A _globalSettingsRules
 _globalSettingsRules[EXECUTABLE_SPECS]='^(true|false)$'
+_globalSettingsRules[FLATTEN_RPMS_DIRECTORY]='^(true|false)$'
+_globalSettingsRules[FLATTEN_SRPMS_DIRECTORY]='^(true|false)$'
 _globalSettingsRules[GLOBAL_CONFIG_SOURCE]='^.+$'
 _globalSettingsRules[OUTPUT_DEBUG]='^(true|false)$'
 _globalSettingsRules[OUTPUT_VERBOSE]='^(true|false)$'
@@ -38,16 +59,21 @@ _globalSettingsRules[POSTBUILD_ON_PARTIAL]='^(true|false)$'
 _globalSettingsRules[PREBUILD_COMMAND]='^.+$'
 _globalSettingsRules[PURGE_RPMS_ON_START]='^(true|false)$'
 _globalSettingsRules[PURGE_SPECS_ON_START]='^(true|false)$'
+_globalSettingsRules[PURGE_SRPMS_ON_START]='^(true|false)$'
 _globalSettingsRules[PURGE_TEMP_WORKSPACES_ON_START]='^(true|false)$'
 _globalSettingsRules[RPMBUILD_ARGS]='^[^;&]+$'
+_globalSettingsRules[RPMS_DIRECTORY]='^.+$'
 _globalSettingsRules[SOURCES_DIRECTORY]='^.+$'
 _globalSettingsRules[SPECS_DIRECTORY]='^.+$'
+_globalSettingsRules[SRPMS_DIRECTORY]='^.+$'
 _globalSettingsRules[USE_TEMP_WORKSPACE]='^(true|false)$'
 _globalSettingsRules[WORKSPACE]='^.+$'
 
 # Define global configuration defaults
 declare -A _globalSettings
 _globalSettings[EXECUTABLE_SPECS]=false
+_globalSettings[FLATTEN_RPMS_DIRECTORY]=false
+_globalSettings[FLATTEN_SRPMS_DIRECTORY]=false
 _globalSettings[GLOBAL_CONFIG_SOURCE]="${_pwDir}/rpm-helpers.conf"
 _globalSettings[OUTPUT_DEBUG]=false
 _globalSettings[OUTPUT_VERBOSE]=false
@@ -57,10 +83,13 @@ _globalSettings[POSTBUILD_ON_PARTIAL]=false
 _globalSettings[PREBUILD_COMMAND]=
 _globalSettings[PURGE_RPMS_ON_START]=false
 _globalSettings[PURGE_SPECS_ON_START]=false
+_globalSettings[PURGE_SRPMS_ON_START]=false
 _globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
 _globalSettings[RPMBUILD_ARGS]=
+_globalSettings[RPMS_DIRECTORY]="${_pwDir}/RPMS"
 _globalSettings[SOURCES_DIRECTORY]="${_pwDir}/SOURCES"
 _globalSettings[SPECS_DIRECTORY]="${_pwDir}/SPECS"
+_globalSettings[SRPMS_DIRECTORY]="${_pwDir}/SRPMS"
 _globalSettings[USE_TEMP_WORKSPACE]=false
 _globalSettings[WORKSPACE]="${_pwDir}"
 
@@ -75,18 +104,11 @@ _globalSettings[USER_SET_SPECS_DIRECTORY]=false
 _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
 
 # Import permissible environment variables
-for configKey in "${!_globalSettingsRules[@]}"; do
-	configValue="${!configKey}"
-	if [ ! -z "$configValue" ]; then
-		storeAllowedSetting \
-			"$configKey" "$configValue" \
-			_globalSettings _globalSettingsRules
-		if [ 3 -eq $? ]; then
-			logWarning "Environment variable ${configKey} is set to an unnaceptable value:  ${configValue}"
-		fi
-	fi
-done
-unset configValue
+declare -A envVarSettings
+logVerbose "Processing environment variables..."
+if ! source "${_myLibDir}"/process-environment-variables.sh; then
+	errorOut 3 "Unable to import the environment variable processing source."
+fi
 
 # Process command-line arguments, which override environment variables by the
 # same key.
@@ -101,17 +123,19 @@ applyCLIArgsToGlobalConfig
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, not each RPM.
+declare -A confFileSettings
 logVerbose "Processing the global configuration file(s)..."
 if ! source "${_myLibDir}"/process-core-config-file.sh; then
 	errorOut 3 "Unable to import the core config processing source."
 fi
+applyConfFileSettingsToGlobalConfig
 
 # Reapply CLI arguments to override config file settings, if any were set
 applyCLIArgsToGlobalConfig
 
 # Update dynamic global variables
 _globalSettings[TEMP_WORKSPACE_DIRECTORY]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
-_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}*${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
+_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}*${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
 
 # Interpolate all variables in the global configuration
 for configKey in "${!_globalSettings[@]}"; do
@@ -122,8 +146,8 @@ for configKey in "${!_globalSettings[@]}"; do
 done
 
 # Canonicalize paths in the global configuration; none can be blank or root
-for configKey in SOURCES_DIRECTORY SPECS_DIRECTORY TEMP_WORKSPACE_DIRECTORY \
-	TEMP_WORKSPACE_DIRECTORY_MASK WORKSPACE
+for configKey in RPMS_DIRECTORY SOURCES_DIRECTORY SPECS_DIRECTORY \
+	SRPMS_DIRECTORY TEMP_WORKSPACE_DIRECTORY WORKSPACE
 do
 	userValue="${_globalSettings[$configKey]}"
 	if [ -z "$userValue" ]; then
@@ -149,5 +173,5 @@ logDebug "Accepted configuration values from all sources:"
 printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
-unset applyCLIArgsToGlobalConfig cliSettings configKey logDebugKV userValue \
-	canonValue
+unset applyCLIArgsToGlobalConfig envVarSettings cliSettings configKey \
+	logDebugKV userValue canonValue

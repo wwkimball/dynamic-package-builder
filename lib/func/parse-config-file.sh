@@ -53,7 +53,7 @@ if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
 
-function tryStoreAllowedSetting {
+function __parseConfigFile__tryStoreAllowedSetting {
 	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${BASH_FUNC[0]}."}
 	local configKey=${2:?"ERROR:  A configuration key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
 	local configLine=${3:-0}
@@ -123,7 +123,7 @@ function parseConfigFile {
 				dedentHereDocLength=-1
 				hereDocStartLine=-1
 				activeHereDocTag=
-				tryStoreAllowedSetting \
+				__parseConfigFile__tryStoreAllowedSetting \
 					"$configFile" "$configKey" $lineNumber \
 					"${configValue:: -1}" configMap _valueRules
 			else
@@ -187,7 +187,7 @@ function parseConfigFile {
 			if [ -f "$readValueFromFile" ]; then
 				configValue=$(cat "$readValueFromFile")
 				if [ ! -z "$configValue" ]; then
-					tryStoreAllowedSetting \
+					__parseConfigFile__tryStoreAllowedSetting \
 						"$configFile" "$configKey" $lineNumber \
 						"$configValue" configMap _valueRules
 				fi
@@ -203,7 +203,7 @@ function parseConfigFile {
 			if [ 0 -ne $? ]; then
 				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
 			else
-				tryStoreAllowedSetting \
+				__parseConfigFile__tryStoreAllowedSetting \
 					"$configFile" "$configKey" $lineNumber \
 					"$configValue" configMap _valueRules
 			fi
@@ -214,7 +214,7 @@ function parseConfigFile {
 		then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			tryStoreAllowedSetting \
+			__parseConfigFile__tryStoreAllowedSetting \
 				"$configFile" "$configKey" $lineNumber \
 				"$configValue" configMap _valueRules
 
@@ -222,7 +222,7 @@ function parseConfigFile {
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
 			configValue=${BASH_REMATCH[2]}
-			tryStoreAllowedSetting \
+			__parseConfigFile__tryStoreAllowedSetting \
 				"$configFile" "$configKey" $lineNumber \
 				"$configValue" configMap _valueRules
 
