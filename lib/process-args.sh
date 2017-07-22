@@ -11,10 +11,13 @@ fi
 if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
+if ! source "${_funcDir}"/trims.sh; then
+	errorOut 3 "Unable to import the trims helper."
+fi
 
 function tryStoreAllowedSetting {
 	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${BASH_FUNC[0]}."}
-	local configValue="$2"
+	local configValue=$(alltrim "$2")
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
