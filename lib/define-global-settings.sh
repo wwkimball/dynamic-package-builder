@@ -15,6 +15,9 @@ fi
 if ! source "${_funcDir}"/interpolate-variables.sh; then
 	errorOut 3 "Unable to import the interpolate-variables helper."
 fi
+if ! source "${_funcDir}"/print-ordered-hash.sh; then
+	errorOut 3 "Unable to import the print-ordered-hash helper."
+fi
 
 function applyCLIArgsToGlobalConfig {
 	# Copy CLI arguments to the global configuration map
@@ -125,11 +128,12 @@ do
 	_globalSettings[$configKey]="$(realpath -m "${_globalSettings[$configKey]}")"
 done
 
-# Report all gathered configuration values
+# DEBUG:  Report all gathered configuration values
+function logDebugKV {
+	logDebug "...$1 => $2"
+}
 logDebug "Accepted configuration values from all sources:"
-for configKey in "${!_globalSettings[@]}"; do
-  logDebug "...${configKey} => ${_globalSettings[$configKey]}"
-done
+printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
 unset applyCLIArgsToGlobalConfig cliSettings configKey
