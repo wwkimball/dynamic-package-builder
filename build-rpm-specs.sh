@@ -71,14 +71,27 @@ if ! source "${_myLibDir}"/process-spec-templates.sh; then
 	errorOut 3 "Unable to import the spec template processing source."
 fi
 
-# Run rpmbuild against every *.spec file in the RPM specs directory
+# Run rpmbuild against every *.spec file in the RPM specs directory after
+# determining whether to build RPMs, SRPMs, or both.  When neither, issue an
+# error.
 packagesBuilt=false
 packageFailures=false
+rpmBuildMode=ba
+if ${_globalSettings[BUILD_RPMS]} && ${_globalSettings[BUILD_SRPMS]}; then
+	rpmBuildMode=ba
+elif ${_globalSettings[BUILD_RPMS]} && ! ${_globalSettings[BUILD_SRPMS]}; then
+	rpmBuildMode=bb
+elif ! ${_globalSettings[BUILD_RPMS]} && ${_globalSettings[BUILD_SRPMS]}; then
+	rpmBuildMode=bs
+else
+	errorOut 30 "You have specified that neither RPMs nor SRPMs be built."
+fi
+
 while IFS= read -r -d '' specFile; do
 	logInfo "Building ${specFile}..."
 	if rpmbuild \
 		--define "_topdir ${_globalSettings[WORKSPACE]}" \
-		-ba "$specFile" \
+		-${rpmBuildMode} "$specFile" \
 		"${_globalSettings[RPMBUILD_ARGS]}"
 	then
 		packagesBuilt=true
