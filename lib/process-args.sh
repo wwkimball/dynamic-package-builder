@@ -68,6 +68,8 @@ function printUsage {
 
 function printHelp {
 	cat <<EOHELP
+
+
  * GLOBAL_CONFIG_SOURCE|--globalconfig|-g:  Directory or file from which all of
    these global settings can be configured using the same key names as the
    environment variables.
@@ -176,17 +178,13 @@ while [ $# -gt 0 ]; do
 
 		# Set the core configuration source
 		-g|--globalconfig)
-			cliSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
 			if [ -z "$2" ]; then
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$2" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
-				fi
 				shift
 			fi
 		;;
@@ -196,12 +194,9 @@ while [ $# -gt 0 ]; do
 				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$testValue" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
-				fi
 			fi
 		;;
 
@@ -274,12 +269,9 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_SPECS_DIRECTORY]=true
-				fi
 				shift
 			fi
 		;;
@@ -289,12 +281,9 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_SPECS_DIRECTORY]=true
-				fi
 			fi
 		;;
 
@@ -304,12 +293,9 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
-				fi
 				shift
 			fi
 		;;
@@ -319,22 +305,17 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				if processArgs__tryStoreAllowedSetting \
+				processArgs__tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
-				then
-					_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
-				fi
 			fi
 		;;
 
 		# Control whether to use a temporary workspace
 		-t|--tempworkspace)
-			cliSettings[USER_SET_USE_TEMP_WORKSPACE]=true
 			cliSettings[USE_TEMP_WORKSPACE]=true
 		;;
 		-T|--notempworkspace)
-			cliSettings[USER_SET_USE_TEMP_WORKSPACE]=true
 			cliSettings[USE_TEMP_WORKSPACE]=false
 		;;
 

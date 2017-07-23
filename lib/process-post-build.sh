@@ -7,13 +7,18 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
+# Import helper functions
+if ! source "${_funcDir}"/trims.sh; then
+	errorOut 3 "Unable to import the string trimming helpers."
+fi
+
 # If necessary, copy S?RPMS to S?RPM_DIRECTORY
 actualRPMDir="${_globalSettings[WORKSPACE]}/RPMS"
 actualSRPMDir="${_globalSettings[WORKSPACE]}/SRPMS"
 desiredRPMDir="${_globalSettings[RPMS_DIRECTORY]}"
 desiredSRPMDir="${_globalSettings[SRPMS_DIRECTORY]}"
-tallyRPMs=$(find "$actualRPMDir" -type f -name '*.rpm' | wc -l)
-tallySRPMs=$(find "$actualSRPMDir" -type f -name '*.srpm' | wc -l)
+tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' | wc -l)")
+tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.srpm' | wc -l)")
 if [ 0 -lt $tallyRPMs -o 0 -lt $tallySRPMs ]; then
 	packagesBuilt=true
 	logVerbose "Post-processing ${tallyRPMs} RPM and ${tallySRPMs} SRPM packages..."

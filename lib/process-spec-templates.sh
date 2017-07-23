@@ -29,6 +29,9 @@ function copyGlobalSettingsTo {
 #   performed again after the injection, which can result in more injections,
 #   which will need more substitutions, and so on.
 
+# TODO:  Also import helpful functions that most RPM specification templates
+# would benefit from so their authors won't have to redefine such common code.
+
 # Enter the SPECS directory so that relative directory references resolve
 pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null
 

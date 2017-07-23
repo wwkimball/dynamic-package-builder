@@ -19,19 +19,18 @@ if ! source "${_funcDir}"/print-ordered-hash.sh; then
 	errorOut 3 "Unable to import the print-ordered-hash helper."
 fi
 
-# Copy CLI arguments to the global configuration map
-function applyCLIArgsToGlobalConfig {
-	for configKey in "${!cliSettings[@]}"; do
-		_globalSettings[$configKey]="${cliSettings[$configKey]}"
-	done
-}
+# Copy collected settings to the global configuration map
+function __globalSettings__applySettingsToGlobalConfig {
+	local -n settingsMap=${1?"ERROR:  A settings map must be provided as the first positional argument to ${BASH_FUNC[0]}."}
 
-# Copy config file settings to the global configuration map
-function applyConfFileSettingsToGlobalConfig {
-	for configKey in "${!confFileSettings[@]}"; do
-		_globalSettings[$configKey]="${confFileSettings[$configKey]}"
+	for configKey in "${!settingsMap[@]}"; do
+		_globalSettings[$configKey]="${settingsMap[$configKey]}"
 
+		# Changing some settings triggers other down-stream code
 		case "$configKey" in
+			GLOBAL_CONFIG_SOURCE)
+				_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=true
+			;;
 			SOURCES_DIRECTORY)
 				_globalSettings[USER_SET_SOURCES_DIRECTORY]=true
 			;;
@@ -111,6 +110,7 @@ logVerbose "Processing environment variables..."
 if ! source "${_myLibDir}"/process-environment-variables.sh; then
 	errorOut 3 "Unable to import the environment variable processing source."
 fi
+__globalSettings__applySettingsToGlobalConfig envVarSettings
 
 # Process command-line arguments, which override environment variables by the
 # same key.
@@ -119,9 +119,7 @@ logVerbose "Processing command-line arguments..."
 if ! source "${_myLibDir}"/process-args.sh; then
 	errorOut 3 "Unable to import the argument processing source."
 fi
-
-# Apply CLI arguments to the global config to pick up immediate effects
-applyCLIArgsToGlobalConfig
+__globalSettings__applySettingsToGlobalConfig cliSettings
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, not each RPM.
@@ -130,10 +128,10 @@ logVerbose "Processing the global configuration file(s)..."
 if ! source "${_myLibDir}"/process-core-config-file.sh; then
 	errorOut 3 "Unable to import the core config processing source."
 fi
-applyConfFileSettingsToGlobalConfig
+__globalSettings__applySettingsToGlobalConfig confFileSettings
 
 # Reapply CLI arguments to override config file settings, if any were set
-applyCLIArgsToGlobalConfig
+__globalSettings__applySettingsToGlobalConfig cliSettings
 
 # Update dynamic global variables
 _globalSettings[TEMP_WORKSPACE_DIRECTORY]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
@@ -141,10 +139,10 @@ _globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[TEMP_WORKSPACE
 
 # Interpolate all variables in the global configuration
 for configKey in "${!_globalSettings[@]}"; do
-  _globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}" _globalSettings)
-  if [ 0 -ne $? ]; then
-	errorOut 1 "Unable to interpolate all variables found in ${configKey}."
-  fi
+	_globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}" _globalSettings)
+	if [ 0 -ne $? ]; then
+		errorOut 1 "Unable to interpolate all variables found in ${configKey}."
+	fi
 done
 
 # Canonicalize paths in the global configuration; none can be blank or root
@@ -175,5 +173,6 @@ logDebug "Accepted configuration values from all sources:"
 printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
-unset applyCLIArgsToGlobalConfig envVarSettings cliSettings configKey \
-	logDebugKV userValue canonValue
+unset envVarSettings cliSettings configKey \
+	logDebugKV userValue canonValue \
+	__globalSettings__applySettingsToGlobalConfig

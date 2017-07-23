@@ -7,12 +7,12 @@
 ################################################################################
 _myDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _myFileName=$(basename ${BASH_SOURCE[0]})
+_myName=${_myFileName%.*}
 _myLibDir="${_myDir}/lib"
+_funcDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
 _pwDir="$(pwd)"
-_libDir="${_myDir}/lib"
-_funcDir="${_libDir}/func"
-readonly _myDir _myFileName _myLibDir _myVersion _pwDir
+readonly _myDir _myFileName _myName _myLibDir _funcDir _myVersion _pwDir
 
 # Bail if the file cannot be sourced without error
 if ! source "${_myLibDir}"/set-logger.sh; then
@@ -87,6 +87,10 @@ while IFS= read -r -d '' specFile; do
 		packageFailures=true
 	fi
 done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*.spec' -print0)
+
+# TODO:  Remove these debugging lines
+touch "${_globalSettings[WORKSPACE]}"/RPMS/test.rpm
+touch "${_globalSettings[WORKSPACE]}"/SRPMS/test.srpm
 
 # Handle post-build processing
 logVerbose "Post-processing..."
