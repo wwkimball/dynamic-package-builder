@@ -46,6 +46,8 @@ function __globalSettings__applySettingsToGlobalConfig {
 
 # Set configuration rules (allowable configuration keys and their values)
 declare -A _globalSettingsRules
+_globalSettingsRules[BUILD_RPMS]='^(true|false)$'
+_globalSettingsRules[BUILD_SRPMS]='^(true|false)$'
 _globalSettingsRules[EXECUTABLE_SPECS]='^(true|false)$'
 _globalSettingsRules[FLATTEN_RPMS_DIRECTORY]='^(true|false)$'
 _globalSettingsRules[FLATTEN_SRPMS_DIRECTORY]='^(true|false)$'
@@ -71,6 +73,8 @@ _globalSettingsRules[WORKSPACE]='^.+$'
 
 # Define global configuration defaults
 declare -A _globalSettings
+_globalSettings[BUILD_RPMS]=true
+_globalSettings[BUILD_SRPMS]=true
 _globalSettings[EXECUTABLE_SPECS]=false
 _globalSettings[FLATTEN_RPMS_DIRECTORY]=false
 _globalSettings[FLATTEN_SRPMS_DIRECTORY]=false
