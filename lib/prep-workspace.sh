@@ -18,12 +18,27 @@ _globalSettings[WORKSPACE]="$workspaceDir"
 
 # PURGE_RPMS_ON_START and PURGE_SRPMS_ON_START
 if ${_globalSettings[PURGE_RPMS_ON_START]}; then
-	logVerbose "Deleting old RPM files from "
+	logInfo "Deleting old RPM files from all directories under ${_globalSettings[RPMS_DIRECTORY]}"
+	while IFS= read -r -d '' rpmFile; do
+		logDebug "Deleting old RPM file:  ${rpmFile}"
+		if ! rm -f "$rpmFile"; then
+			errorOut 11 "Unable to delete old RPM file:  ${rpmFile}"
+		fi
+	done < <(find "${_globalSettings[RPMS_DIRECTORY]}" -type f -iname "*.rpm" -print0)
+fi
+if ${_globalSettings[PURGE_SRPMS_ON_START]}; then
+	logInfo "Deleting old SRPM files from all directories under ${_globalSettings[SRPMS_DIRECTORY]}"
+	while IFS= read -r -d '' rpmFile; do
+		logDebug "Deleting old SRPM file:  ${rpmFile}"
+		if ! rm -f "$rpmFile"; then
+			errorOut 11 "Unable to delete old SRPM file:  ${rpmFile}"
+		fi
+	done < <(find "${_globalSettings[SRPMS_DIRECTORY]}" -type f -iname "*.srpm" -print0)
 fi
 
 # PURGE_TEMP_WORKSPACES_ON_START
 if ${_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]}; then
-	logVerbose "Deleting old workspaces matching:  ${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]}"
+	logInfo "Deleting old workspaces matching:  ${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]}"
 	while IFS= read -r -d '' tempWorkspace; do
 		logDebug "Deleting old workspace directory:  ${tempWorkspace}"
 		if ! rm -rf "$tempWorkspace"; then
@@ -37,9 +52,9 @@ if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	# SPECS_DIRECTORY
 	if ${_globalSettings[USER_SET_SPECS_DIRECTORY]}; then
 		expectedSpecsDirectory="${workspaceDir}/SPECS"
+		logDebug "Expecting SPECS_DIRECTORY:  ${expectedSpecsDirectory}"
 		if [ "$expectedSpecsDirectory" != "${_globalSettings[SPECS_DIRECTORY]}" ]
 		then
-			logDebug "Expecting SPECS_DIRECTORY:  ${expectedSpecsDirectory}"
 			logWarning "Forcing USE_TEMP_WORKSPACE because the indicated SPECS directory differs from the required location, ${expectedSpecsDirectory}."
 			_globalSettings[USE_TEMP_WORKSPACE]=true
 		fi
@@ -49,9 +64,9 @@ if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	# SOURCES_DIRECTORY
 	if ${_globalSettings[USER_SET_SOURCES_DIRECTORY]}; then
 		expectedSourcesDirectory="${workspaceDir}/SOURCES"
+		logDebug "Expecting SOURCES_DIRECTORY:  ${expectedSourcesDirectory}"
 		if [ "$expectedSourcesDirectory" != "${_globalSettings[SOURCES_DIRECTORY]}" ]
 		then
-			logDebug "Expecting SOURCES_DIRECTORY:  ${expectedSourcesDirectory}"
 			logWarning "Forcing USE_TEMP_WORKSPACE because the indicated SOURCES directory differs from the required location, ${expectedSourcesDirectory}."
 			_globalSettings[USE_TEMP_WORKSPACE]=true
 		fi
@@ -60,6 +75,7 @@ fi
 
 # USE_TEMP_WORKSPACE
 if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
+	logInfo "Creating temporary workspace at ${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
 	if ! mkdir -p "${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 	then
 		errorOut 2 "Unable to create temporary workspace at ${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
@@ -81,10 +97,10 @@ if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	fi
 	_globalSettings[SPECS_DIRECTORY]="${copyTo}"
 
-	copyFrom="${_globalSettings[SOURCES_DIRECTORY]}/."
+	copyFrom="${_globalSettings[SOURCES_DIRECTORY]}"
 	copyTo="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}/SOURCES"
-	if stat -t "${copyFrom}" &>/dev/null; then
-		if ! cp -R "$copyFrom" "$copyTo"; then
+	if stat "${copyFrom}"/* &>/dev/null; then
+		if ! cp -R "$copyFrom"/* "$copyTo"; then
 			errorOut 2 "Unable to copy SOURCES files from ${copyFrom} to ${copyTo}"
 		fi
 	fi
@@ -111,21 +127,29 @@ fi
 # create more specs files.
 # EXECUTABLE_SPECS
 if ${_globalSettings[EXECUTABLE_SPECS]}; then
+	logInfo "Running all executables in ${_globalSettings[SPECS_DIRECTORY]}"
+
 	# Enter the SPECS directory to run all executables within
 	pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null
 
 	while IFS= read -r -d '' execFile; do
+		if [ ! -x "$execFile" ]; then
+			logDebug "Skipping non-executable file, ${execFile}"
+			continue
+		fi
+
 		logDebug "Running executable:  ${execFile}"
 		"$execFile"
 		execState=$?
 		if [ 0 -ne $execState ]; then
 			errorOut 10 "Executable file, ${execFile}, returned non-zero exit state:  ${execState}"
 		fi
-	done < <(find . -maxdepth 1 -type f -executable -print0)
+	done < <(find . -maxdepth 1 -type f -print0)
 
 	# Return to the previous directory
 	popd &>/dev/null
 fi
 
 # Cleanup
-unset workspaceDir copyFrom copyTo execFile execState
+unset workspaceDir copyFrom copyTo execFile execState rpmFile \
+	expectedSpecsDirectory expectedSourcesDirectory

@@ -37,6 +37,11 @@ else
 	errorOut 128 "Unable to identify the installed version of bash."
 fi
 
+# rpmbuild must be installed
+if ! which rpmbuild &>/dev/null; then
+	errorOut 125 "The rpmbuild program must be installed and accessible on the PATH."
+fi
+
 # Process global configuration
 logVerbose "Processing global configuration..."
 if ! source "${_myLibDir}"/define-global-settings.sh; then
@@ -44,6 +49,15 @@ if ! source "${_myLibDir}"/define-global-settings.sh; then
 fi
 
 # PREBUILD_COMMAND
+if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
+	logInfo "Running pre-build command"
+	${_globalSettings[PREBUILD_COMMAND]}
+	prebuildState=$?
+	if [ 0 -ne $prebuildState ]; then
+		errorOut 12 "Received non-zero exit state from the pre-build command, ${prebuildState}."
+	fi
+fi
+unset prebuildState
 
 # Prepare the workspace
 logVerbose "Preparing for RPM building at ${_globalSettings[WORKSPACE]}..."
@@ -51,18 +65,31 @@ if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
 
-# Run rpmbuild against every *.spec file in the RPM specs directory.
+# Interpolate variables in the spec templates
+logVerbose "Interpolating variables in all RPM specification files..."
+if ! source "${_myLibDir}"/process-spec-templates.sh; then
+	errorOut 3 "Unable to import the spec template processing source."
+fi
 
-# If any *.rpm files were created, validate them.
+# Run rpmbuild against every *.spec file in the RPM specs directory
+packagesBuilt=false
+packageFailures=false
+while IFS= read -r -d '' specFile; do
+	logInfo "Building ${specFile}..."
+	if rpmbuild \
+		--define "_topdir ${_globalSettings[WORKSPACE]}" \
+		-ba "$specFile" \
+		"${_globalSettings[RPMBUILD_ARGS]}"
+	then
+		packagesBuilt=true
+	else
+		logWarning "${specFile} has failed to build."
+		packageFailures=true
+	fi
+done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*.spec' -print0)
 
-# If necessary, copy S?RPMS to S?RPM_DIRECTORY
-
-# If requested, FLATTEN_S?RPM_DIRECTORY
-
-# Optionally move validated RPMs to a publication directory.
-
-# POSTBUILD_ON_PARTIAL
-# POSTBUILD_ON_FAIL
-# POSTBUILD_COMMAND
-
-# KEEP_FAILED_TEMP_WORKSPACE
+# Handle post-build processing
+logVerbose "Post-processing..."
+if ! source "${_myLibDir}"/process-post-build.sh; then
+	errorOut 3 "Unable to import the post-build processing source."
+fi
