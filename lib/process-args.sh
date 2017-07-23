@@ -63,59 +63,162 @@ EOVER
 }
 
 function printUsage {
-	echo "${_myFileName} [OPTIONS] [-- RPMBUILD OPTIONS]"
+	echo "${_myFileName} [OPTIONS] [[--] RPMBUILD_ARGS]"
 }
 
 function printHelp {
 	cat <<EOHELP
+At its heart, ${_myName} simply attempts to build RPM and SRPM files from
+your sources and RPM specification files.  Because there is little value in
+merely wrapping the rpmbuild program, this script family does quite a bit more.
+
+The reality of RPM building is that there is no such thing as a permanently
+static RPM specification file.  Packagers who truly adhere to RPM standards
+have a fundamental need to produce a unique RPM file every time they run the
+rpmbuild program.  At the very least, the release tag number must be incremented
+or reset depending on the package version and permanently tracked throughout the
+life-span of the source project.  Alone, that is no trivial task but it -- and a
+litany of other routine RPM and SRPM file handling chores -- is made simple by
+${_myName}.
+
+The default configuration of this script is adequate for the majority of RPM
+tasks.  Point it at a directory where your SPECS and SOURCES already exist and
+just run it to generate RPM and SRPM files.  Tweak the defaults to take control
+whenever you'd rather do something a little different or extend the automation
+to take on more of your routine.  Configuration can be supplied via environment
+variables, configuration files, and command-line arguments exclusively or
+together.  These configuraiton sources are prioritized such that command-line
+arguments > configuration file settings > environment variables > defaults.
+
+OPTIONS: aAcCdefFghikKmMopPrstTvwxX => bBDEGHIjJlLnNOqQRSuUVWyYzZ
+
+BUILD_RPMS
+BUILD_SRPMS
+
+  -x, --execspecs, EXECUTABLE_SPECS=true
+    Run any executables in the SPECS_DIRECTORY, presumably to dynamically
+    generate *.spec files.  Default: false
+
+  -X, --noexecspecs, EXECUTABLE_SPECS=false
+    Disable running executables in the SPECS_DIRECTORY.  This is the default.
+
+FLATTEN_RPMS_DIRECTORY
+FLATTEN_SRPMS_DIRECTORY
+
+  -g FILE_OR_PATH, --globalconfig=FILE_OR_PATH, GLOBAL_CONFIG_SOURCE
+    Directory or file from which all of these global settings can be configured
+    using the same key names as the environment variables.  When a directory is
+    supplied, all *.conf files in that directory (not subdirectories) will be
+    consumed.  Default: ./rpm-helpers.conf
+
+  -a, --keepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=true
+    When USE_TEMP_WORKSPACE is enabled also enable this option to preserve the
+    temporary workspace whenever any RPM build fails.  Otherwise, the temporary
+    workspace is always destroyed.  This can be helpful for troubleshooting your
+    RPM builds but should not be left enabled beyond active debugging.  Default:
+    false
+
+  -A, --nokeepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=false
+    Always clean up temporary workspaces, even when an error occurs during RPM
+    building.  This is the default.
+
+  -d, --debug, OUTPUT_DEBUG
+    Maximize the console output level to include debugging messages.  This is
+    very noisy.
+
+  -v, --verbose, OUTPUT_VERBOSE
+    Increase the console output level to include verbose informative messages.
+
+  -o COMMAND, --postcmd=COMMAND, POSTBUILD_COMMAND
+    Command to run after all RPM building activities have concluded successfully
+    but before cleanup.
+
+  -p, --postpartial, POSTBUILD_ON_PARTIAL=true
+    Run POSTBUILD_COMMAND when at least one RPM or SRPM is successfully
+    generated, even if all others were aborted by errors.
+
+  -P, --nopostpartial, POSTBUILD_ON_PARTIAL=false
+    Don't run POSTBUILD_COMMAND when any build fails.  This is the default.
+
+  -f, --postfail, POSTBUILD_ON_FAIL=true
+    Run POSTBUILD_COMMAND even when all RPM build attempts fail, resulting in no
+    RPMs and SRPMs.
+
+  -F, --nopostfail, POSTBUILD_ON_FAIL=false
+    Don't allow POSTBUILD_COMMAND to run when all RPM build attempts fail.  This
+    is the default.
+
+  -e COMMAND, --precmd=COMMAND, PREBUILD_COMMAND
+    Command to run before RPM building occurs (and before EXECUTABLE_SPECS is
+    enacted).
+
+  -k, --purgerpms, PURGE_RPMS_ON_START=true
+    Destroy all *.rpm and *.srpm files found in RPMS_DIRECTORY and
+    SRPMS_DIRECTORY at start.  This is useful for builds that publish the RPM
+    and SRPM files to an external repository so that old packages aren't left on
+    the local file-system.
+
+  -K, --nopurgerpms, PURGE_RPMS_ON_START=false
+    Do not delete any RPM or SRPM files on start.  This is the default.
+
+  -c, --purgespecs, PURGE_SPECS_ON_START=true
+    Destroy all *.spec files found in SPECS_DIRECTORY at start.  This is useful
+    for projects that dynamically create all *.spec files at run-time.  Default:
+    false
+
+  -C, --nopurgespecs, PURGE_SPECS_ON_START=false
+    Don't destroy any *.spec files in SPECS_DIRECTORY at start.  This is the
+    default.
 
 
- * GLOBAL_CONFIG_SOURCE|--globalconfig|-g:  Directory or file from which all of
-   these global settings can be configured using the same key names as the
-   environment variables.
- * WORKSPACE|--workspace|-w:  The root of the directory tree from where RPM
-   source files are pulled and -- unless USE_TEMP_WORKSPACE is enabled -- where
-   RPM build activities will be conducted.
- * USE_TEMP_WORKSPACE|--tempworkspace|-t|-T|--notempworkspace:  Create a unique
-   temporary workspace to which all SPECS and SOURCES are copied before RPM
-   building begins.  This is forced only when necessary and not specifically
-   disabled.  It is not enabled by default because copying SPECS and SOURCES
-   can be either unnecessarily wasteful or simply a bad idea, like when
-   SOURCES are very large or EXECUTABLE_SPECS is enabled and the executables
-   require a specific relative directory structure.
- * SPECS_DIRECTORY|--rpmspecs|-r:  Where are your RPM SPECS files?  If not
-   ${WORKSPACE}/SPECS, then USE_TEMP_WORKSPACE must be true.  If it is forced
-   by the user to false, then the build must be halted.
- * SOURCES_DIRECTORY|--sources|-s:  Where are your SOURCES files?  If not
-   ${WORKSPACE}/SOURCES, then USE_TEMP_WORKSPACE must be true.  If it is forced
-   by the user to false, then the build must be halted.
- * EXECUTABLE_SPECS|--execspecs|-x|-X|--noexecspecs:  Set true to run any
-   executables in SPECS_DIRECTORY to dynamically generate *.spec files.  false
-   by default.
- * PREBUILD_COMMAND|--precmd|-e:  Command to run before RPM building occurs
-   (and before EXECUTABLE_SPECS is enacted).
- * POSTBUILD_COMMAND|--postcmd|-o:  Command to run after all RPM building
-   activities have concluded successfully but before cleanup.
- * POSTBUILD_ON_PARTIAL|--postpartial|-p|-P|--nopostpartial:  Should
-   POSTBUILD_COMMAND be run for partial successes (when at least one RPM has
-   been generated)?
- * POSTBUILD_ON_FAIL|--postfail|-f|-F|--nopostfail:  Should POSTBUILD_COMMAND
-   be run for total failure (when no RPMs were built, at all)?
- * KEEP_FAILED_TEMP_WORKSPACE|--keepfailedtemp|-k|-K|--nokeepfailedtemp:
-   Boolean to indicate whether to preserve temp workspaces on failure.  true
-   by default.
- * PURGE_TEMP_WORKSPACES_ON_START|--purgeoldtemps|-m:  Boolean to indicate
-   whether to destroy previous temp workspaces on start.  true by default.
- * PURGE_SPECS_ON_START|--purgespecs|-c|-C|--nopurgespecs:  Boolean to indicate
-   whether to destroy all *.spec files at startup.  This is useful for projects
-   that dynamically create *.spec files at build-time.  false by default.
- * PURGE_RPMS_ON_START|--purgerpms|-k|-K|--nopurgerpms:  Boolean to indicate
-   whether to destroy all previously-build *.rpm files at startup.  false by
-   default.
- * OUTPUT_VERBOSE|--verbose|-v:  Enable-only Boolean that increases the output
-   logging level.
- * OUTPUT_DEBUG|--debug|-d:  Enable-only Boolean that increases the output
-   logging level to its most noisy.
+PURGE_SRPMS_ON_START
+
+
+  -m, --purgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=true
+    Destroy any ligering temporary workspaces found in WORKSPACE while setting
+    up for the next run.  Default: false
+
+  -M, --nopurgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=false
+    Do not destroy old temporary workspaces found in WORKSPACE while setting up
+    for the next run.  If you are using -- or are being forced to use --
+    temporary workspaces that you do do not clean up, this can cause your file-
+    system to become quite full and is strongly discouraged.  This is the
+    default.
+
+
+RPMBUILD_ARGS
+RPMS_DIRECTORY
+
+
+  -s DIRECTORY, --sources=DIRECTORY, SOURCES_DIRECTORY
+    Location of your source file(s) for the RPM.  If not ${WORKSPACE}/SOURCES,
+    then USE_TEMP_WORKSPACE must be true and will be made so, if necessary.
+    Default:  ./SOURCES
+
+  -r DIRECTORY, --rpmspecs=DIRECTORY, SPECS_DIRECTORY
+    Location of your RPM specification files.  If not \${WORKSPACE}/SPECS, then
+    USE_TEMP_WORKSPACE must be true and will be made so, if necessary.  Default:
+    ./SPECS
+
+SRPMS_DIRECTORY
+
+  -t, --tempworkspace, USE_TEMP_WORKSPACE=true
+    Create a unique temporary workspace to which all SPECS and SOURCES are
+    copied before RPM building begins.  This is forced only when necessary and
+    not specifically disabled.  It is not enabled by default because copying
+    SPECS and SOURCES can be either unnecessarily wasteful or simply a bad idea,
+    like when SOURCES are very large or EXECUTABLE_SPECS is enabled and the
+    executables require a specific relative directory structure.  Default: false
+
+  -T, --notempworkspace, USE_TEMP_WORKSPACE=false
+    Disable use of temporary workspaces, if possible.  A warning will be issued
+    and a temporary workspace will be used anyway when the supplied workspace
+    isn't properly built for RPM activities.  This is the default.
+
+  -w DIRECTORY, --workspace=DIRECTORY, WORKSPACE
+    The root of the directory tree from where RPM source files are pulled and
+    -- unless USE_TEMP_WORKSPACE is enabled -- where RPM build activities will
+    be conducted.  Default: .
 
 $(printVersion)
 
