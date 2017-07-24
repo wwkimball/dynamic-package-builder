@@ -63,11 +63,96 @@ EOVER
 }
 
 function printUsage {
-	echo "${_myFileName} [OPTIONS] [[--] RPMBUILD_ARGS]"
+	echo "${_myFileName} [OPTIONS] [-- RPMBUILD_ARGS]"
 }
 
+# Used short-args:  aAbBcCdefFghikKlLmMopPrstTuUvwxXyYzZ (DEGHIjJnNOqQRSVW)
 function printHelp {
-	cat <<EOHELP
+	local helpSubject=${1^^}
+
+	case $helpSubject in
+		CONFIGS)
+			cat <<EOCONFIGHELP
+${_myName} employs configuration files for both its global settings
+and for optional external configuration for each RPM specification file.  These
+are not static files.  The configuration file format defines keys, values, and
+comments as follows:
+   1. Whitespace before the key, on either side of the assignment operator,
+      after the value, and on otherwise empty lines is ignored.
+   2. Keys and values may be separated by either = or : assignment operators.
+      So, these lines are equivalent:
+      KEY = VALUE
+      KEY: VALUE
+   3. Values may be bare (non-demarcated) or demarcated with either ' or "
+      symbols, however comments may be added only after demarcated values lest #
+      would otherwise never be allowed as part of a value.
+   4. Values may be dedented or non-dedented HEREDOCs.  A non-dedented HEREDOC is
+      identified as all the content between <<HERETAG and HERETAG, where HERETAG
+      is any arbitrary sequence of capitalized letters and underscore characters.
+      A dedented HEREDOC is indicated by prefixing the arbitrary HERETAG with a -
+      symbol.  Whereas a non-dedented HEREDOC value preserves all whitespace
+      between the HERETAGs, a dedented HEREDOC strips the leading whitespace from
+      every line, up to the number of whitespace characters present on the first
+      line, up to the first non-whitespace character.
+   5. Unterminated HEREDOCs will generate a fatal error.
+   6. Outside of HEREDOCs, # marks the start of a comment.  Entire lines may be
+      commented.  Comments may appear at the end of any line except when it is a
+      key=value line with no demarcation of the value.  HEREDOC values are
+      treated verbatim, so # is not ignored.  Examples:
+      KEY = VALUE   # THIS COMMENT BECOMES PART OF THE NON-DEMARCATED VALUE!
+      KEY = 'Value' # This comment is ignored
+      KEY = "Value" # This comment is also ignored
+   7. Outside of HEREDOCs, blank lines are ignored.  HEREDOC values are treated
+      verbatim, so blank lines become part of the value.
+   8. Values can be read from external files by using the form:
+      KEY = <@ /path/to/file-containing-the-value
+   9. Values can be read from executable statements by using the form:
+      KEY = <$ some-executable-command-sequence-that-writes-to-STDOUT
+  10. All key names are cast to upper-case, so the following are equivalent:
+      key = value
+      KEY = value
+      Key = value
+  11. Key names must begin with an alphabetic character but may otherwise
+      consist of any alphanumeric characters and the _ symbol.
+
+External configuration files for spec files are found by matching the spec
+filename against a conf file by the same name in the same directory.
+EOCONFIGHELP
+		;;
+
+        SPECS)
+			cat <<EOSPECHELP
+RPM specification files are so heavily documented elsewhere that their details
+and idiosynchracies will not be discussed here.  Rather, this documentation
+covers the extensions that are afforded by ${_myName}.  These are expressed
+as shell-style variable substitutions.  However, to avoid conflict with
+variables that are meant to be left untouched in your scriptlets, some
+additional symbols are employed.  The supported extensions include:
+  1. \${:VAR_NAME} is a simple variable substitution.  Available variables come
+     from the global settings as well as any keys found within configuration
+     files by the same name and in the same directory as the spec file itself
+     with a conf file extension (so, product-name.spec can have a configuration
+     file named product-name.conf).  See --help CONFIGS for more detail on how
+     to create these variables.
+  2. \${:VAR_NAME:=default} and \${:VAR_NAME:-default} are identical to
+     \${:VAR_NAME} except that 'default' becomes the value when VAR_NAME is
+     undefined or empty.
+  3. \${@FILE_CONCAT} copies the content of FILE_CONCAT verbatim into the spec
+     file.
+
+The {} pair is not optional.  Failure to use them will result in your
+substitution attempt being ignored.
+
+Variable name substitution and file concatenation occur repeatedly over the
+spec file until there are no such operations remaining.  So, variables injected
+by a concatenation are substituted on the subsequent pass, which can result in
+more concatenations, and so on.  You may use variable substitution to
+dynamically identify concatenation file-names.
+EOSPECHELP
+		;;
+
+		*)	# General
+			cat <<EOHELP
 At its heart, ${_myName} simply attempts to build RPM and SRPM files from
 your sources and RPM specification files.  Because there is little value in
 merely wrapping the rpmbuild program, this script family does quite a bit more.
@@ -90,20 +175,44 @@ variables, configuration files, and command-line arguments exclusively or
 together.  These configuraiton sources are prioritized such that command-line
 arguments > configuration file settings > environment variables > defaults.
 
-OPTIONS: aAcCdefFghikKmMopPrstTvwxX => bBDEGHIjJlLnNOqQRSuUVWyYzZ
+OPTIONS:
+  -h [SUBJECT], --help [SUBJECT]
+    Print this general help or more specific documentation on any of these
+    SUBJECT categories, then quits:
+      * CONFIGS
+      * SPECS
 
-BUILD_RPMS
-BUILD_SRPMS
+  -i, --version
+    Prints version and license information, then quits.
+
+  -b, --buildrpms, BUILD_RPMS=true
+  -B, --nobuildrpms, BUILD_RPMS=false
+    Enable or disable building RPM files.  There is little value in building
+    nothing, so this option might be used when BUILD_SRPMS is enabled.  Default:
+    true
+
+  -u, --buildsrpms, BUILD_SRPMS=true
+  -U, --nobuildsrpms, BUILD_SRPMS=false
+    Enable or disable building SRPM (Source RPM) files.  Default: true
 
   -x, --execspecs, EXECUTABLE_SPECS=true
-    Run any executables in the SPECS_DIRECTORY, presumably to dynamically
-    generate *.spec files.  Default: false
-
   -X, --noexecspecs, EXECUTABLE_SPECS=false
-    Disable running executables in the SPECS_DIRECTORY.  This is the default.
+    Enable or disable running executables in the SPECS_DIRECTORY, presumably to
+    dynamically generate *.spec files.  Default: false
 
-FLATTEN_RPMS_DIRECTORY
-FLATTEN_SRPMS_DIRECTORY
+  -y, --flattenrpmdir, FLATTEN_RPMS_DIRECTORY=true
+  -Y, --noflattenrpmdir, FLATTEN_RPMS_DIRECTORY=false
+    Enable or disable flattening the RPMS output directory.  The rpmbuild
+    program normally creates a deep directory structure that sorts built RPMs by
+    platform and architecture.  Enabling this option moves the output files to
+    the top-level directory.  Default: false
+
+  -z, --flattensrpmdir, FLATTEN_SRPMS_DIRECTORY=true
+  -Z, --noflattensrpmdir, FLATTEN_SRPMS_DIRECTORY=false
+    Enable or disable flattening the SRPMS output directory.  The rpmbuild
+    program normally creates a deep directory structure that sorts built SRPMs
+	by platform and architecture.  Enabling this option moves the output files
+	to the top-level directory.  Default: false
 
   -g FILE_OR_PATH, --globalconfig=FILE_OR_PATH, GLOBAL_CONFIG_SOURCE
     Directory or file from which all of these global settings can be configured
@@ -112,15 +221,12 @@ FLATTEN_SRPMS_DIRECTORY
     consumed.  Default: ./rpm-helpers.conf
 
   -a, --keepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=true
-    When USE_TEMP_WORKSPACE is enabled also enable this option to preserve the
+  -A, --nokeepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=false
+    When USE_TEMP_WORKSPACE is enabled, also enable this option to preserve the
     temporary workspace whenever any RPM build fails.  Otherwise, the temporary
     workspace is always destroyed.  This can be helpful for troubleshooting your
     RPM builds but should not be left enabled beyond active debugging.  Default:
     false
-
-  -A, --nokeepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=false
-    Always clean up temporary workspaces, even when an error occurs during RPM
-    building.  This is the default.
 
   -d, --debug, OUTPUT_DEBUG
     Maximize the console output level to include debugging messages.  This is
@@ -134,61 +240,48 @@ FLATTEN_SRPMS_DIRECTORY
     but before cleanup.
 
   -p, --postpartial, POSTBUILD_ON_PARTIAL=true
-    Run POSTBUILD_COMMAND when at least one RPM or SRPM is successfully
-    generated, even if all others were aborted by errors.
-
   -P, --nopostpartial, POSTBUILD_ON_PARTIAL=false
-    Don't run POSTBUILD_COMMAND when any build fails.  This is the default.
+    Run POSTBUILD_COMMAND when at least one RPM or SRPM is successfully
+    generated, even if all others were aborted by errors.  Default: false
 
   -f, --postfail, POSTBUILD_ON_FAIL=true
-    Run POSTBUILD_COMMAND even when all RPM build attempts fail, resulting in no
-    RPMs and SRPMs.
-
   -F, --nopostfail, POSTBUILD_ON_FAIL=false
-    Don't allow POSTBUILD_COMMAND to run when all RPM build attempts fail.  This
-    is the default.
+    Run POSTBUILD_COMMAND even when all RPM build attempts fail, resulting in no
+    RPMs and SRPMs.  Default: false
 
   -e COMMAND, --precmd=COMMAND, PREBUILD_COMMAND
     Command to run before RPM building occurs (and before EXECUTABLE_SPECS is
     enacted).
 
   -k, --purgerpms, PURGE_RPMS_ON_START=true
-    Destroy all *.rpm and *.srpm files found in RPMS_DIRECTORY and
-    SRPMS_DIRECTORY at start.  This is useful for builds that publish the RPM
-    and SRPM files to an external repository so that old packages aren't left on
-    the local file-system.
-
   -K, --nopurgerpms, PURGE_RPMS_ON_START=false
-    Do not delete any RPM or SRPM files on start.  This is the default.
+    Destroy all *.rpm files found in RPMS_DIRECTORY and at start.  This is
+	useful for builds that publish the files to an external repository so that
+	old packages aren't left on the local file-system.  Default:  false
 
   -c, --purgespecs, PURGE_SPECS_ON_START=true
+  -C, --nopurgespecs, PURGE_SPECS_ON_START=false
     Destroy all *.spec files found in SPECS_DIRECTORY at start.  This is useful
     for projects that dynamically create all *.spec files at run-time.  Default:
     false
 
-  -C, --nopurgespecs, PURGE_SPECS_ON_START=false
-    Don't destroy any *.spec files in SPECS_DIRECTORY at start.  This is the
-    default.
-
-
-PURGE_SRPMS_ON_START
-
+  -l, --purgesrpms, PURGE_SRPMS_ON_START=true
+  -L, --nopurgesrpms, PURGE_SRPMS_ON_START=false
+    Destroy all *.srpm files found in SRPMS_DIRECTORY at start.  This is useful
+	for builds that publish the files to an external repository so that old
+	packages aren't left on the local file-system.  Default:  false
 
   -m, --purgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=true
+  -M, --nopurgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=false
     Destroy any ligering temporary workspaces found in WORKSPACE while setting
     up for the next run.  Default: false
 
-  -M, --nopurgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=false
-    Do not destroy old temporary workspaces found in WORKSPACE while setting up
-    for the next run.  If you are using -- or are being forced to use --
-    temporary workspaces that you do do not clean up, this can cause your file-
-    system to become quite full and is strongly discouraged.  This is the
-    default.
-
-
-RPMBUILD_ARGS
-RPMS_DIRECTORY
-
+  -n DIRECTORY, --rpmdir=DIRECTORY, RPMS_DIRECTORY
+    Final directory for all generated RPM files to be placed into, including
+    the nested directory structure that is created by the rpmbuild program.  To
+    flatten this directory structure (so that the files are placed directly into
+    the DIRECTORY you specify instead of a sub-directory within), you will need
+    to enable FLATTEN_RPMS_DIRECTORY.  Default:  ./RPMS
 
   -s DIRECTORY, --sources=DIRECTORY, SOURCES_DIRECTORY
     Location of your source file(s) for the RPM.  If not ${WORKSPACE}/SOURCES,
@@ -200,9 +293,15 @@ RPMS_DIRECTORY
     USE_TEMP_WORKSPACE must be true and will be made so, if necessary.  Default:
     ./SPECS
 
-SRPMS_DIRECTORY
+  -j DIRECTORY, --srpmdir=DIRECTORY, SRPMS_DIRECTORY
+    Final directory for all generated SRPM files to be placed into, including
+    the nested directory structure that is created by the rpmbuild program.  To
+    flatten this directory structure (so that the files are placed directly into
+    the DIRECTORY you specify instead of a sub-directory within), you will need
+    to enable FLATTEN_SRPMS_DIRECTORY.  Default:  ./SRPMS
 
   -t, --tempworkspace, USE_TEMP_WORKSPACE=true
+  -T, --notempworkspace, USE_TEMP_WORKSPACE=false
     Create a unique temporary workspace to which all SPECS and SOURCES are
     copied before RPM building begins.  This is forced only when necessary and
     not specifically disabled.  It is not enabled by default because copying
@@ -210,20 +309,23 @@ SRPMS_DIRECTORY
     like when SOURCES are very large or EXECUTABLE_SPECS is enabled and the
     executables require a specific relative directory structure.  Default: false
 
-  -T, --notempworkspace, USE_TEMP_WORKSPACE=false
-    Disable use of temporary workspaces, if possible.  A warning will be issued
-    and a temporary workspace will be used anyway when the supplied workspace
-    isn't properly built for RPM activities.  This is the default.
-
   -w DIRECTORY, --workspace=DIRECTORY, WORKSPACE
     The root of the directory tree from where RPM source files are pulled and
     -- unless USE_TEMP_WORKSPACE is enabled -- where RPM build activities will
     be conducted.  Default: .
 
-$(printVersion)
-
-$(cat "${_myDir}"/LICENSE)
+  -- RPMBUILD_ARGS
+    Any additional command-line arguments to pass directly to the rpmbuild
+    program.  A -- must be used to separate argument sets between
+	${_myName} and rpmbuild on the command-line.
 EOHELP
+		;;
+	esac
+
+	echo
+	printVersion
+	echo
+	cat "${_myDir}"/LICENSE
 }
 
 # Process command-line arguments.  Allow environment variables to be used to set
@@ -305,7 +407,7 @@ while [ $# -gt 0 ]; do
 
 		# Help requests
 		-h|--help)
-			printHelp
+			printHelp $2
 			exit 0
 		;;
 
@@ -331,6 +433,94 @@ while [ $# -gt 0 ]; do
 		;;
 		-M|--nopurgeoldtemps)
 			cliSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
+		;;
+
+		-b|--buildrpms)
+			cliSettings[BUILD_RPMS]=true
+		;;
+		-B|--nobuildrpms)
+			cliSettings[BUILD_RPMS]=false
+		;;
+
+		-u|--buildsrpms)
+			cliSettings[BUILD_SRPMS]=true
+		;;
+		-U|--nobuildsrpms)
+			cliSettings[BUILD_SRPMS]=false
+		;;
+
+		-y|--flattenrpmdir)
+			cliSettings[FLATTEN_RPMS_DIRECTORY]=true
+		;;
+		-Y|--noflattenrpmdir)
+			cliSettings[FLATTEN_RPMS_DIRECTORY]=false
+		;;
+
+		-z|--flattensrpmdir)
+			cliSettings[FLATTEN_SRPMS_DIRECTORY]=true
+		;;
+		-Z|--noflattensrpmdir)
+			cliSettings[FLATTEN_SRPMS_DIRECTORY]=false
+		;;
+
+		-a|--keepfailedtemp)
+			cliSettings[KEEP_FAILED_TEMP_WORKSPACE]=true
+		;;
+		-A|--nokeepfailedtemp)
+			cliSettings[KEEP_FAILED_TEMP_WORKSPACE]=false
+		;;
+
+		-l|--purgesrpms)
+			cliSettings[PURGE_SRPMS_ON_START]=true
+		;;
+		-L|--nopurgesrpms)
+			cliSettings[PURGE_SRPMS_ON_START]=false
+		;;
+
+		-n|--rpmdir)
+			if [ -z "$2" ]; then
+				logError "-n|--rpmdir requires a value."
+				hasCommandLineErrors=true
+			else
+				processArgs__tryStoreAllowedSetting \
+					RPMS_DIRECTORY "$2" \
+					cliSettings _globalSettingsRules
+				shift
+			fi
+		;;
+		--rpmdir=*)
+			testValue="${1#*=}"
+			if [ -z "$testValue" ]; then
+				logError "--rpmdir= requires a value."
+				hasCommandLineErrors=true
+			else
+				processArgs__tryStoreAllowedSetting \
+					RPMS_DIRECTORY "$testValue" \
+					cliSettings _globalSettingsRules
+			fi
+		;;
+
+		-j|--srpmdir)
+			if [ -z "$2" ]; then
+				logError "-j|--srpmdir requires a value."
+				hasCommandLineErrors=true
+			else
+				processArgs__tryStoreAllowedSetting \
+					SRPMS_DIRECTORY "$2" \
+					cliSettings _globalSettingsRules
+				shift
+			fi
+		;;
+		--srpmdir=*)
+			testValue="${1#*=}"
+			if [ -z "$testValue" ]; then
+				logError "--srpmdir= requires a value."
+				hasCommandLineErrors=true
+			else
+				processArgs__tryStoreAllowedSetting \
+					SRPMS_DIRECTORY "$testValue" \
+					cliSettings _globalSettingsRules
+			fi
 		;;
 
 		# Set the pre-build command
