@@ -157,7 +157,7 @@ do
 	if [ -z "$userValue" ]; then
 		errorOut 1 "${configKey} cannot be empty."
 	else
-		canonValue="$(realpath -m "$userValue")"
+		canonValue="$(realpath -m "$(interpolateVariables "$userValue")")"
 
 		if [ -z "$canonValue" ]; then
 			errorOut 1 "${configKey} cannot be empty."

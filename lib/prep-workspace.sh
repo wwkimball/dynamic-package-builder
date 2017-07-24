@@ -12,10 +12,6 @@ if ! source "${_funcDir}"/interpolate-variables.sh; then
 	errorOut 3 "Unable to import the interpolate-variables helper."
 fi
 
-# Expand certain variables in the path
-workspaceDir="$(realpath -m "$(interpolateVariables "${_globalSettings[WORKSPACE]}")")"
-_globalSettings[WORKSPACE]="$workspaceDir"
-
 # PURGE_RPMS_ON_START and PURGE_SRPMS_ON_START
 if ${_globalSettings[PURGE_RPMS_ON_START]}; then
 	logInfo "Deleting old RPM files from all directories under ${_globalSettings[RPMS_DIRECTORY]}"
@@ -139,7 +135,7 @@ if ${_globalSettings[EXECUTABLE_SPECS]}; then
 		fi
 
 		logDebug "Running executable:  ${execFile}"
-		"$execFile"
+		/usr/bin/env bash -c "$execFile"
 		execState=$?
 		if [ 0 -ne $execState ]; then
 			errorOut 10 "Executable file, ${execFile}, returned non-zero exit state:  ${execState}"

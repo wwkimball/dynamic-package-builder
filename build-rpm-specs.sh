@@ -43,15 +43,15 @@ if ! which rpmbuild &>/dev/null; then
 fi
 
 # Process global configuration
-logVerbose "Processing global configuration..."
+logInfo "Processing global configuration..."
 if ! source "${_myLibDir}"/define-global-settings.sh; then
 	errorOut 3 "Unable to import the global configuration source."
 fi
 
 # PREBUILD_COMMAND
 if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
-	logInfo "Running pre-build command"
-	${_globalSettings[PREBUILD_COMMAND]}
+	logInfo "Running pre-build command..."
+	/usr/bin/env bash -c "${_globalSettings[PREBUILD_COMMAND]}"
 	prebuildState=$?
 	if [ 0 -ne $prebuildState ]; then
 		errorOut 12 "Received non-zero exit state from the pre-build command, ${prebuildState}."
@@ -60,53 +60,29 @@ fi
 unset prebuildState
 
 # Prepare the workspace
-logVerbose "Preparing for RPM building at ${_globalSettings[WORKSPACE]}..."
+logInfo "Preparing an S/RPM building workspace at ${_globalSettings[WORKSPACE]}..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
 
 # Interpolate variables in the spec templates
-logVerbose "Interpolating variables in all RPM specification files..."
+logInfo "Interpolating variables in all RPM specification files..."
 if ! source "${_myLibDir}"/process-spec-templates.sh; then
 	errorOut 3 "Unable to import the spec template processing source."
 fi
 
-# Run rpmbuild against every *.spec file in the RPM specs directory after
-# determining whether to build RPMs, SRPMs, or both.  When neither, issue an
-# error.
-packagesBuilt=false
-packageFailures=false
-rpmBuildMode=ba
-if ${_globalSettings[BUILD_RPMS]} && ${_globalSettings[BUILD_SRPMS]}; then
-	rpmBuildMode=ba
-elif ${_globalSettings[BUILD_RPMS]} && ! ${_globalSettings[BUILD_SRPMS]}; then
-	rpmBuildMode=bb
-elif ! ${_globalSettings[BUILD_RPMS]} && ${_globalSettings[BUILD_SRPMS]}; then
-	rpmBuildMode=bs
-else
-	errorOut 30 "You have specified that neither RPMs nor SRPMs be built."
+# Interpolate variables in the spec templates
+logInfo "Building S/RPMs from your spec files..."
+if ! source "${_myLibDir}"/process-rpm-specs.sh; then
+	errorOut 3 "Unable to import the spec processing source."
 fi
 
-while IFS= read -r -d '' specFile; do
-	logInfo "Building ${specFile}..."
-	if rpmbuild \
-		--define "_topdir ${_globalSettings[WORKSPACE]}" \
-		-${rpmBuildMode} "$specFile" \
-		"${_globalSettings[RPMBUILD_ARGS]}"
-	then
-		packagesBuilt=true
-	else
-		logWarning "${specFile} has failed to build."
-		packageFailures=true
-	fi
-done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*.spec' -print0)
-
 # TODO:  Remove these debugging lines
-touch "${_globalSettings[WORKSPACE]}"/RPMS/test.rpm
-touch "${_globalSettings[WORKSPACE]}"/SRPMS/test.srpm
+#touch "${_globalSettings[WORKSPACE]}"/RPMS/test.rpm
+#touch "${_globalSettings[WORKSPACE]}"/SRPMS/test.srpm
 
 # Handle post-build processing
-logVerbose "Post-processing..."
+logInfo "Running post-processing tasks..."
 if ! source "${_myLibDir}"/process-post-build.sh; then
 	errorOut 3 "Unable to import the post-build processing source."
 fi

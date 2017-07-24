@@ -48,7 +48,7 @@ if [ ! -z "$postbuildCommand" ]; then
 
 	if $runPostbuildCommand; then
 		logInfo "Running post-build command"
-		$postbuildCommand
+		/usr/bin/env bash -c "$postbuildCommand"
 		postbuildState=$?
 		if [ 0 -ne $postbuildState ]; then
 			logWarning "Received non-zero exit state from the post-build command, ${postbuildState}."
