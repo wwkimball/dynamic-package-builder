@@ -211,8 +211,8 @@ OPTIONS:
   -Z, --noflattensrpmdir, FLATTEN_SRPMS_DIRECTORY=false
     Enable or disable flattening the SRPMS output directory.  The rpmbuild
     program normally creates a deep directory structure that sorts built SRPMs
-	by platform and architecture.  Enabling this option moves the output files
-	to the top-level directory.  Default: false
+    by platform and architecture.  Enabling this option moves the output files
+    to the top-level directory.  Default: false
 
   -g FILE_OR_PATH, --globalconfig=FILE_OR_PATH, GLOBAL_CONFIG_SOURCE
     Directory or file from which all of these global settings can be configured
@@ -256,8 +256,8 @@ OPTIONS:
   -k, --purgerpms, PURGE_RPMS_ON_START=true
   -K, --nopurgerpms, PURGE_RPMS_ON_START=false
     Destroy all *.rpm files found in RPMS_DIRECTORY and at start.  This is
-	useful for builds that publish the files to an external repository so that
-	old packages aren't left on the local file-system.  Default:  false
+    useful for builds that publish the files to an external repository so that
+    old packages aren't left on the local file-system.  Default:  false
 
   -c, --purgespecs, PURGE_SPECS_ON_START=true
   -C, --nopurgespecs, PURGE_SPECS_ON_START=false
@@ -268,8 +268,8 @@ OPTIONS:
   -l, --purgesrpms, PURGE_SRPMS_ON_START=true
   -L, --nopurgesrpms, PURGE_SRPMS_ON_START=false
     Destroy all *.srpm files found in SRPMS_DIRECTORY at start.  This is useful
-	for builds that publish the files to an external repository so that old
-	packages aren't left on the local file-system.  Default:  false
+    for builds that publish the files to an external repository so that old
+    packages aren't left on the local file-system.  Default:  false
 
   -m, --purgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=true
   -M, --nopurgeoldtemps, PURGE_TEMP_WORKSPACES_ON_START=false
@@ -317,7 +317,7 @@ OPTIONS:
   -- RPMBUILD_ARGS
     Any additional command-line arguments to pass directly to the rpmbuild
     program.  A -- must be used to separate argument sets between
-	${_myName} and rpmbuild on the command-line.
+    ${_myName} and rpmbuild on the command-line.
 EOHELP
 		;;
 	esac
