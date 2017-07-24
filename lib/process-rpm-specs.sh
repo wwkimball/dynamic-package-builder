@@ -39,3 +39,12 @@ while IFS= read -r -d '' specFile; do
 		packageFailures=true
 	fi
 done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*.spec' -print0)
+
+# Pass errors to the caller
+if $packageFailures; then
+	if $packagesBuilt; then
+		_exitCode=101
+	else
+		_exitCode=100
+	fi
+fi

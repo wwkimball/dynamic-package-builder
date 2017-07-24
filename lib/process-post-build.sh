@@ -26,7 +26,8 @@ if [ 0 -lt $tallyRPMs -o 0 -lt $tallySRPMs ]; then
 		errorOut 3 "Unable to import the RPM file post-processing source."
 	fi
 else
-	logWarning "Neither RPMs nor SRPMs were built."
+	logError "Neither RPMs nor SRPMs were built."
+	_exitCode=103
 fi
 
 # POSTBUILD_ON_PARTIAL
@@ -51,7 +52,8 @@ if [ ! -z "$postbuildCommand" ]; then
 		/usr/bin/env bash -c "$postbuildCommand"
 		postbuildState=$?
 		if [ 0 -ne $postbuildState ]; then
-			logWarning "Received non-zero exit state from the post-build command, ${postbuildState}."
+			logError "Received non-zero exit state from the post-build command, ${postbuildState}."
+			_exitCode=102
 		fi
 	fi
 fi

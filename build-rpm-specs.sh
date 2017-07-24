@@ -12,9 +12,10 @@ _myLibDir="${_myDir}/lib"
 _funcDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
 _pwDir="$(pwd)"
+_exitCode=0
 readonly _myDir _myFileName _myName _myLibDir _funcDir _myVersion _pwDir
 
-# Bail if the file cannot be sourced without error
+# Attempt to source the output logger functions
 if ! source "${_myLibDir}"/set-logger.sh; then
 	echo "ERROR:  Unable to import the logger source." >&2
 	exit 3
@@ -77,12 +78,13 @@ if ! source "${_myLibDir}"/process-rpm-specs.sh; then
 	errorOut 3 "Unable to import the spec processing source."
 fi
 
-# TODO:  Remove these debugging lines
-#touch "${_globalSettings[WORKSPACE]}"/RPMS/test.rpm
-#touch "${_globalSettings[WORKSPACE]}"/SRPMS/test.srpm
-
 # Handle post-build processing
 logInfo "Running post-processing tasks..."
 if ! source "${_myLibDir}"/process-post-build.sh; then
 	errorOut 3 "Unable to import the post-build processing source."
 fi
+
+# Adjust the exit code as necessary
+
+
+exit $_exitCode
