@@ -54,15 +54,15 @@ if ! source "${_funcDir}"/store-allowed-setting.sh; then
 fi
 
 function __parseConfigFile__tryStoreAllowedSetting {
-	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${BASH_FUNC[0]}."}
-	local configKey=${2:?"ERROR:  A configuration key must be specified as the second positional argument to ${BASH_FUNC[0]}."}
+	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${FUNCNAME[0]}."}
+	local configKey=${2:?"ERROR:  A configuration key must be specified as the second positional argument to ${FUNCNAME[0]}."}
 	local configLine=${3:-0}
 	local configValue="$4"
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 5 ]; then
-		errorOut 42 "Bug!  No configMap passed to ${BASH_FUNC[0]} for ${configKey} from ${configFile}."
+		errorOut 42 "Bug!  No configMap passed to ${FUNCNAMETION[0]} for ${configKey} from ${configFile}."
 		return 1
 	fi
 
@@ -75,7 +75,7 @@ function __parseConfigFile__tryStoreAllowedSetting {
 		;;
 
 		1)	# No configMap
-			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${FUNCNAME[0]}."
 		;;
 
 		2)	# Unacceptable configKey
@@ -95,10 +95,17 @@ function __parseConfigFile__tryStoreAllowedSetting {
 }
 
 function parseConfigFile {
-	local -n configMap=${1:?"ERROR:  An associative array variable name must be specified as the first positional arugment to ${BASH_FUNC[0]}."}
-	local configFile=${2:?"ERROR:  A configuration file must be specified as the second positional argument to ${BASH_FUNC[0]}."}
-	local -n _valueRules=$3
+	# This is a recursive bash function that uses namerefs to pass and receive
+	# associative arrays by name.  Because bash 4.4- has a documented bug where
+	# all dereferenced variables exist only in the global scope, despite use of
+	# `local`, random variable names must be used per iteration of this
+	# function.  It's a disgusting hack but it's just the only sensible way to
+	# pull this off without resorting to even more hacky `evals` or external
+	# storage transfers.
+	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${FUNCNAME[0]}."}
 	local configLine configKey configValue activeHereDocTag \
+		configMapRef=configMap${RANDOM} \
+		configRulesRef=configRules${RANDOM} \
 		dedentHereDocLength=-1 \
 		dedentHereDoc=false \
 		readingHereDoc=false \
@@ -106,10 +113,24 @@ function parseConfigFile {
 		hereDocStartLine=-1 \
 		returnState=0
 
+	logDebug "Parsing for configuration key-value pairs:  ${configFile}"
+
+	if [ $# -lt 2 ]; then
+		logError "An associative array variable name must be specified as the second positional arugment to ${FUNCNAME[0]}."
+		return 1
+	else
+		declare -n $configMapRef=$2
+	fi
+
 	# Do nothing when there is nothing to do
 	if [ ! -f "$configFile" ]; then
 		logError "Configuration file not found:  ${configFile}."
 		return 2
+	fi
+
+	# Grab the value rules, if they were supplied
+	if [ $# -gt 2 ]; then
+		declare -n "$configRulesRef"="$3"
 	fi
 
 	while IFS= read -r configLine; do
@@ -125,7 +146,7 @@ function parseConfigFile {
 				activeHereDocTag=
 				__parseConfigFile__tryStoreAllowedSetting \
 					"$configFile" "$configKey" $lineNumber \
-					"${configValue:: -1}" configMap _valueRules
+					"${configValue:: -1}" $configMapRef $configRulesRef
 			else
 				# Concatenate the line to the active HEREDOC
 				if $dedentHereDoc; then
@@ -174,6 +195,21 @@ function parseConfigFile {
 			activeHereDocTag=${BASH_REMATCH[2]}
 			configValue=
 
+		# Permit reading configuration from another file (single file only)
+		elif [[ $configLine =~ ^[[:space:]]*@[Ii][Nn][Cc][Ll][Uu][Dd][Ee][[:space:]]+(.+)$ ]]; then
+			readValueFromFile=${BASH_REMATCH[1]}
+
+			# Expand certain variables in the path
+			if [[ $readValueFromFile =~ ^(~|\$HOME|\$\{HOME\})(.+)$ ]]; then
+				readValueFromFile="${HOME}/${BASH_REMATCH[2]}"
+			fi
+
+			if ! parseConfigFile "$readValueFromFile" $configMapRef $configRulesRef
+			then
+				returnState=3
+				break
+			fi
+
 		# Permit file input for values
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<@[[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
@@ -189,7 +225,7 @@ function parseConfigFile {
 				if [ ! -z "$configValue" ]; then
 					__parseConfigFile__tryStoreAllowedSetting \
 						"$configFile" "$configKey" $lineNumber \
-						"$configValue" configMap _valueRules
+						"$configValue" $configMapRef $configRulesRef
 				fi
 			else
 				logWarning "No such file specified in ${configFile}:${lineNumber}:  ${readValueFromFile}."
@@ -205,7 +241,7 @@ function parseConfigFile {
 			else
 				__parseConfigFile__tryStoreAllowedSetting \
 					"$configFile" "$configKey" $lineNumber \
-					"$configValue" configMap _valueRules
+					"$configValue" $configMapRef $configRulesRef
 			fi
 
 		# Permit comments on lines with demarcated values
@@ -216,7 +252,7 @@ function parseConfigFile {
 			configValue=${BASH_REMATCH[2]}
 			__parseConfigFile__tryStoreAllowedSetting \
 				"$configFile" "$configKey" $lineNumber \
-				"$configValue" configMap _valueRules
+				"$configValue" $configMapRef $configRulesRef
 
 		# Uncommented, bare lines; comments become value, so don't do this
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*(.+)$ ]]; then
@@ -224,7 +260,7 @@ function parseConfigFile {
 			configValue=${BASH_REMATCH[2]}
 			__parseConfigFile__tryStoreAllowedSetting \
 				"$configFile" "$configKey" $lineNumber \
-				"$configValue" configMap _valueRules
+				"$configValue" $configMapRef $configRulesRef
 
 		# Unrecognized line format
 		else

@@ -16,13 +16,13 @@ if ! source "${_funcDir}"/trims.sh; then
 fi
 
 function processArgs__tryStoreAllowedSetting {
-	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${BASH_FUNC[0]}."}
+	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${FUNCNAME[0]}."}
 	local configValue=$(alltrim "$2")
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 3 ]; then
-		errorOut 42 "Bug!  No configMap passed to ${BASH_FUNC[0]} for ${configKey} from the command-line."
+		errorOut 42 "Bug!  No configMap passed to ${FUNCNAME[0]} for ${configKey} from the command-line."
 		return 1
 	fi
 
@@ -35,7 +35,7 @@ function processArgs__tryStoreAllowedSetting {
 		;;
 
 		1)	# No configMap
-			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${FUNCNAME[0]}."
 		;;
 
 		2)	# Unacceptable configKey
@@ -143,11 +143,36 @@ additional symbols are employed.  The supported extensions include:
 The {} pair is not optional.  Failure to use them will result in your
 substitution attempt being ignored.
 
+
+
+
+
+
+
+TODO:  Document protection against interminable recursion
+
+
+
+
+
+
+
 Variable name substitution and file concatenation occur repeatedly over the
-spec file until there are no such operations remaining.  So, variables injected
+spec file until there are no such operations remaining or a recursion limit set
+via ______ as been reached (caused by repeatedly triggering the same variable
+substitution or file concatenation too many times).  So, variables injected
 by a concatenation are substituted on the subsequent pass, which can result in
 more concatenations, and so on.  You may use variable substitution to
 dynamically identify concatenation file-names.
+
+In addition to whatever variables you may define within the optional
+configuration file for your RPM specification, the following variables are also
+available, which you can override:
+  * PACKAGE_NAME
+  * PACKAGE_ARCH
+  * PACKAGE_BUILDER
+  * PACKAGE_BUILT_TIME
+  * PACKAGE_RELEASE_NUMBER
 EOSPECHELP
 		;;
 

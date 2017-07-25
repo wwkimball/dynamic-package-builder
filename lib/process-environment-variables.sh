@@ -16,13 +16,13 @@ if ! source "${_funcDir}"/trims.sh; then
 fi
 
 function processEnvVars__tryStoreAllowedSetting {
-	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${BASH_FUNC[0]}."}
+	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${FUNCNAME[0]}."}
 	local configValue=$(alltrim "$2")
 	local storeResult
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 3 ]; then
-		errorOut 42 "Bug!  No configMap passed to ${BASH_FUNC[0]} for ${configKey} from the command-line."
+		errorOut 42 "Bug!  No configMap passed to ${FUNCNAME[0]} for ${configKey} from the command-line."
 		return 1
 	fi
 
@@ -35,7 +35,7 @@ function processEnvVars__tryStoreAllowedSetting {
 		;;
 
 		1)	# No configMap
-			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${BASH_FUNC[0]}."
+			errorOut 42 "Bug!  The configuration map could not be dereferenced in ${FUNCNAME[0]}."
 		;;
 
 		2)	# Unacceptable configKey

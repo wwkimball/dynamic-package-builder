@@ -18,13 +18,13 @@ configSource="${_globalSettings[GLOBAL_CONFIG_SOURCE]}"
 hasConfigError=false
 if [ -d "$configSource" ]; then
 	while IFS= read -r -d '' configFile; do
-		if ! parseConfigFile confFileSettings "$configFile" _globalSettingsRules; then
+		if ! parseConfigFile "$configFile" confFileSettings _globalSettingsRules; then
 			logError "Unable to read from configuration file, ${configFile}."
 			hasConfigError=true
 		fi
 	done < <(find "$configSource" -maxdepth 1 -type f -iname '*.conf' -print0)
 elif [ -e "$configSource" ]; then
-	if ! parseConfigFile confFileSettings "$configFile" _globalSettingsRules; then
+	if ! parseConfigFile "$configFile" confFileSettings _globalSettingsRules; then
 		logError "Unable to read from configuration file, ${configFile}."
 		hasConfigError=true
 	fi

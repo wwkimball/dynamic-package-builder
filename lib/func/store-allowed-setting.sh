@@ -17,7 +17,7 @@ function storeAllowedSetting {
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 3 ]; then
-		logWarning "No __configMap passed to ${BASH_FUNC[0]} for [$configKey]"
+		logWarning "No __configMap passed to ${FUNCNAME[0]} for [$configKey]"
 		return 1
 	fi
 	__configMap=$3
@@ -28,11 +28,9 @@ function storeAllowedSetting {
 		if [[ ! -v __valueRules[@] ]]; then
 			# There are no value rules
 			forceAdd=true
-			logDebug "Empty __valueRules passed to ${BASH_FUNC[0]} for [$configKey]"
 		fi
 	else
 		forceAdd=true
-		logDebug "Missing __valueRules argument to ${BASH_FUNC[0]} for [$configKey]"
 	fi
 	if $forceAdd; then
 		__configMap[$configKey]="$configValue"

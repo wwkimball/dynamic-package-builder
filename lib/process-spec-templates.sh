@@ -13,7 +13,7 @@ if ! source "${_funcDir}"/parse-config-file.sh; then
 fi
 
 function copyGlobalSettingsTo {
-	declare -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${BASH_FUNC[0]}."}
+	declare -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
 	for configKey in "${!_globalSettings[@]}"; do
 		targetMap[$configKey]="${_globalSettings[$configKey]}"
 	done
@@ -48,12 +48,16 @@ while IFS= read -r -d '' specFile; do
 	specPathedName="${specFile%.*}"
 	specConfigMap[PACKAGE_NAME]="${specPathedName##*/}"
 	specConfigMap[PACKAGE_ARCH]="$(uname -m)"
+	specConfigMap[PACKAGE_BUILDER]="$(whoami)"
+	specConfigMap[PACKAGE_BUILT_TIME]="$(date +"%a %b %d %Y")"
+	specConfigMap[PACKAGE_VERSION]='0.1.0'		# TODO:  Find a way to extract the version number from SORUCE0?  Or not?
+	specConfigMap[PACKAGE_RELEASE_NUMBER]=1		# TODO:  IIF PACKAGE_VERSION is known, add a function that automates tracking this PACKAGE_RELEASE_NUMBER
 
 	# Check for a matching *.conf file in the same directory
 	specConfigFile="${specPathedName}.conf"
 	if [ -e "$specConfigFile" ]; then
 		# Ingest its contents to specConfig hash
-		if ! parseConfigFile specConfigMap "$specConfigFile"; then
+		if ! parseConfigFile "$specConfigFile" specConfigMap; then
 			errorOut 20 "Unable to read from configuration file, ${configFile}."
 		fi
 	fi
@@ -103,7 +107,7 @@ while IFS= read -r -d '' specFile; do
 				if [ -f "$swapFile" ]; then
 					swapLine="${swapPre}$(cat "$swapFile")${swapPost}"
 				else
-					logWarning "No such file, ${swapFile}, for ${specFile}."
+					errorOut 23 "No such file, ${swapFile}, for ${specFile}."
 					swapLine="${swapPre}${swapPost}"
 				fi
 			fi

@@ -21,7 +21,7 @@ fi
 
 # Copy collected settings to the global configuration map
 function __globalSettings__applySettingsToGlobalConfig {
-	local -n settingsMap=${1?"ERROR:  A settings map must be provided as the first positional argument to ${BASH_FUNC[0]}."}
+	local -n settingsMap=${1?"ERROR:  A settings map must be provided as the first positional argument to ${FUNCNAME[0]}."}
 
 	for configKey in "${!settingsMap[@]}"; do
 		_globalSettings[$configKey]="${settingsMap[$configKey]}"

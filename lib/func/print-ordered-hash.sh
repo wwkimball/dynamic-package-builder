@@ -9,8 +9,8 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 function printOrderedHash {
-	local printFunction=${1?"ERROR:  The name of a function to call with key-value pairs must be provided as the first positional argument to ${BASH_FUNC[0]}."}
-	local -n printHash=${2?"ERROR:  The name of an associative array must be passed as the second positional argument to ${BASH_FUNC[0]}."}
+	local printFunction=${1?"ERROR:  The name of a function to call with key-value pairs must be provided as the first positional argument to ${FUNCNAME[0]}."}
+	local -n printHash=${2?"ERROR:  The name of an associative array must be passed as the second positional argument to ${FUNCNAME[0]}."}
 	local hashKeys=("${!printHash[@]}")
 	local plainKeys="${hashKeys[*]}"
 	local sortedKeys=$(echo "${plainKeys// /$'\n'}" | sort)
