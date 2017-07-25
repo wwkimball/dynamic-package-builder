@@ -115,6 +115,10 @@ comments as follows:
   11. Key names must begin with an alphabetic character but may otherwise
       consist of any alphanumeric characters and the _ symbol.
 
+On its own line, an @include INCLUDE_FILE statement injects the contents of
+INCLUDE_FILE at that point.  Include file processing is recursive, so variable
+substitutions and further includes occur against the included content.
+
 External configuration files for spec files are found by matching the spec
 filename against a conf file by the same name in the same directory.
 EOCONFIGHELP
@@ -172,7 +176,6 @@ available, which you can override:
   * PACKAGE_ARCH
   * PACKAGE_BUILDER
   * PACKAGE_BUILT_TIME
-  * PACKAGE_RELEASE_NUMBER
 EOSPECHELP
 		;;
 

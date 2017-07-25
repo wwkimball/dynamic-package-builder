@@ -62,7 +62,7 @@ function __parseConfigFile__tryStoreAllowedSetting {
 
 	# Bail out when the user fails to supply a config map.
 	if [ $# -lt 5 ]; then
-		errorOut 42 "Bug!  No configMap passed to ${FUNCNAMETION[0]} for ${configKey} from ${configFile}."
+		errorOut 42 "Bug!  No configMap passed to ${FUNCNAME[0]} for ${configKey} from ${configFile}."
 		return 1
 	fi
 
