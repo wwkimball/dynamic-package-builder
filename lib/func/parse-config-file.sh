@@ -69,7 +69,7 @@ function __parseConfigFile__tryStoreAllowedSetting {
 		return 1
 	fi
 
-	storeAllowedSetting "$configKey" "$configValue" $5 $6
+	storeAllowedSetting "$configKey" "$(interpolateVariables "$configValue" _globalSettings $5)" $5 $6
 	storeResult=$?
 
 	case $storeResult in
@@ -238,7 +238,7 @@ function parseConfigFile {
 		# reasons that you're not allowed to run this as root).
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<\$[[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
-			evalCommand=$(interpolateVariables "${BASH_REMATCH[2]}" $configMapRef)
+			evalCommand=$(interpolateVariables "${BASH_REMATCH[2]}" _globalSettings $configMapRef)
 			configValue=$(eval "$evalCommand")
 			if [ 0 -ne $? ]; then
 				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."

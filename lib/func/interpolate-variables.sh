@@ -8,11 +8,19 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 	exit 1
 fi
 
+function __interpolateVariables__copyHashTo {
+	declare -n sourceMap=${1:?"ERROR:  A source map must be passed as the first positional argument to ${FUNCNAME[0]}."}
+	declare -n targetMap=${2:?"ERROR:  A target map must be passed as the second positional argument to ${FUNCNAME[0]}."}
+	for configKey in "${!sourceMap[@]}"; do
+		targetMap[$configKey]="${sourceMap[$configKey]}"
+	done
+}
+
 function interpolateVariables {
 	local templateString="$1"
 	local recursionLimit=${INTERPOLATION_RECURSION_LIMIT:-5}
 	local fullTemplate fullVariable variableName replaceValue hasVarMap=false
-	local -n variableMap
+	local -A variableMap
 	local -A variablesSeen
 
 	# No nulls
@@ -20,10 +28,13 @@ function interpolateVariables {
 		return 0;
 	fi
 
-	if [ $# -gt 1 ]; then
-		variableMap=$2
+	# Accept any number of variable maps; combine them into one for lookups
+	shift
+	while [ $# -gt 0 ]; do
+		__interpolateVariables__copyHashTo $1 variableMap
 		hasVarMap=true
-	fi
+		shift
+	done
 
 	while [[ $templateString =~ ^.*(\$\{?([A-Za-z0-9_]+)\}?).*$ ]]; do
 		fullTemplate=${BASH_REMATCH[0]}
@@ -45,9 +56,14 @@ function interpolateVariables {
 		else
 			((variablesSeen[$variableName]++))
 			if [ $recursionLimit -lt ${variablesSeen[$variableName]} ]; then
-				echo "WARNING:  String interpolation cancelled due to more than ${recursionLimit} recursions on variable, ${variableName}, in ${templateString}." >&2
+				echo "WARNING:  String interpolation cancelled due to more than ${recursionLimit} replacements for variable, ${variableName}, in ${templateString}.  Set INTERPOLATION_RECURSION_LIMIT higher if you believe this to be too sensitive." >&2
 				return 1
 			fi
+		fi
+
+		# Report empty values
+		if [ -z "$replaceValue" ]; then
+			echo "WARNING:  No substitution value available for variable, ${fullVariable}." >&2
 		fi
 
 		templateString=${fullTemplate//${fullVariable}/${replaceValue}}

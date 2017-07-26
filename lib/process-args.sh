@@ -173,6 +173,7 @@ In addition to whatever variables you may define within the optional
 configuration file for your RPM specification, the following variables are also
 available, which you can override:
   * PACKAGE_NAME
+  * PACKAGE_DIST
   * PACKAGE_ARCH
   * PACKAGE_BUILDER
   * PACKAGE_BUILT_TIME

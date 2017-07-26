@@ -14,21 +14,16 @@ fi
 
 # Import all functions from the rpm-helpers project, then the pwd, then the
 # SPECS contrib directories.
-while IFS= read -r -d '' funcFile; do
-	if ! source "$funcFile"; then
-		logWarning "Unable to source contributed function from source file:  ${funcFile}"
+for contribSource in "${_myDir}" . "${_globalSettings[SPECS_DIRECTORY]}"; do
+	contribDir="${contribSource}/contrib"
+	if [ -d "$contribDir" ]; then
+		while IFS= read -r -d '' funcFile; do
+			if ! source "$funcFile"; then
+				logWarning "Unable to source contributed function from source file:  ${funcFile}"
+			fi
+		done < <(find "${contribDir}" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
 	fi
-done < <(find "${_myDir}/contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
-while IFS= read -r -d '' funcFile; do
-	if ! source "$funcFile"; then
-		logWarning "Unable to source contributed function from pwd source file:  ${funcFile}"
-	fi
-done < <(find "./contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
-while IFS= read -r -d '' funcFile; do
-	if ! source "$funcFile"; then
-		logWarning "Unable to source contributed function from specs source file:  ${funcFile}"
-	fi
-done < <(find "${_globalSettings[SPECS_DIRECTORY]}/contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
+done
 
 function copyGlobalSettingsTo {
 	declare -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
@@ -67,7 +62,7 @@ while IFS= read -r -d '' specFile; do
 	# Check for a matching *.conf file in the same directory
 	specConfigFile="${specPathedName}.conf"
 	if [ -e "$specConfigFile" ]; then
-		# Ingest its contents to specConfig hash
+		# Ingest its contents into the specConfig hash
 		if ! parseConfigFile "$specConfigFile" specConfigMap; then
 			errorOut 20 "Unable to read from configuration file, ${configFile}."
 		fi
@@ -84,13 +79,20 @@ while IFS= read -r -d '' specFile; do
 			errorOut 21 "Unable to create swap file, ${specSwapFile}"
 		fi
 
+		specLineNo=0
 		while IFS= read -r specLine; do
+			((specLineNo++))
 			if [[ $specLine =~ ^(.*)\$\{:([A-Za-z0-9_]+)\}(.*)$ ]]; then
 				hadSubstitution=true
 				swapPre=${BASH_REMATCH[1]}
 				swapVar=${BASH_REMATCH[2]}
 				swapPost=${BASH_REMATCH[3]}
-				swapLine="${swapPre}${specConfigMap[${swapVar}]}${swapPost}"
+				swapValue=${specConfigMap[${swapVar}]}
+				swapLine="${swapPre}${swapValue}${swapPost}"
+
+				if [ -z "$swapValue" ]; then
+					logWarning "Empty value for variable, ${swapVar}, at ${specFile}:${specLineNo}"
+				fi
 			elif [[ $specLine =~ ^(.*)\$\{:([A-Za-z0-9_]+):[=-]([^}]*)\}(.*)$ ]]
 			then
 				hadSubstitution=true
@@ -104,6 +106,10 @@ while IFS= read -r -d '' specFile; do
 					swapValue="$swapDefault"
 				fi
 				swapLine="${swapPre}${swapValue}${swapPost}"
+
+				if [ -z "$swapValue" ]; then
+					logWarning "Empty value for variable, ${swapVar}, at ${specFile}:${specLineNo}"
+				fi
 			else
 				swapLine="$specLine"
 			fi
@@ -116,9 +122,10 @@ while IFS= read -r -d '' specFile; do
 				swapPost=${BASH_REMATCH[3]}
 
 				if [ -f "$swapFile" ]; then
+					logVerbose "Injecting file, ${swapFile}, into spec at ${specFile}:${specLineNo}"
 					swapLine="${swapPre}$(cat "$swapFile")${swapPost}"
 				else
-					errorOut 23 "No such file, ${swapFile}, for ${specFile}."
+					errorOut 23 "No such file, ${swapFile}, for ${specFile}:${specLineNo}."
 					swapLine="${swapPre}${swapPost}"
 				fi
 			fi
