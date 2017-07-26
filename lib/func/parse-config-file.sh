@@ -52,6 +52,9 @@ fi
 if ! source "${_funcDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
+if ! source "${_funcDir}"/interpolate-variables.sh; then
+	errorOut 3 "Unable to import the interpolate-variables helper."
+fi
 
 function __parseConfigFile__tryStoreAllowedSetting {
 	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${FUNCNAME[0]}."}
@@ -235,7 +238,8 @@ function parseConfigFile {
 		# reasons that you're not allowed to run this as root).
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<\$[[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
-			configValue=$(eval ${BASH_REMATCH[2]})
+			evalCommand=$(interpolateVariables "${BASH_REMATCH[2]}" $configMapRef)
+			configValue=$(eval "$evalCommand")
 			if [ 0 -ne $? ]; then
 				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
 			else

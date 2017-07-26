@@ -12,6 +12,24 @@ if ! source "${_funcDir}"/parse-config-file.sh; then
 	errorOut 3 "Unable to import the config file parser."
 fi
 
+# Import all functions from the rpm-helpers project, then the pwd, then the
+# SPECS contrib directories.
+while IFS= read -r -d '' funcFile; do
+	if ! source "$funcFile"; then
+		logWarning "Unable to source contributed function from source file:  ${funcFile}"
+	fi
+done < <(find "${_myDir}/contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
+while IFS= read -r -d '' funcFile; do
+	if ! source "$funcFile"; then
+		logWarning "Unable to source contributed function from pwd source file:  ${funcFile}"
+	fi
+done < <(find "./contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
+while IFS= read -r -d '' funcFile; do
+	if ! source "$funcFile"; then
+		logWarning "Unable to source contributed function from specs source file:  ${funcFile}"
+	fi
+done < <(find "${_globalSettings[SPECS_DIRECTORY]}/contrib" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
+
 function copyGlobalSettingsTo {
 	declare -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
 	for configKey in "${!_globalSettings[@]}"; do
@@ -19,21 +37,15 @@ function copyGlobalSettingsTo {
 	done
 }
 
-# ${:VAR_NAME} => from a varMap (which overrides globals).  External
-#   configuration files for spec files are found by matching the spec filename
-#   against a conf file by the same name in the same directory.
-# ${:VAR_NAME:[-=]default} => Same as ${:VAR_NAME} except that 'default' becomes
-#   the value when VAR_NAME results in a null value.
-# ${@FILE_CONCAT} => Content is copied verbatim into the spec file.  These names
-#   can be derived dynamically after the ${:} pass, so variable substitution is
-#   performed again after the injection, which can result in more injections,
-#   which will need more substitutions, and so on.
-
-# TODO:  Also import helpful functions that most RPM specification templates
-# would benefit from so their authors won't have to redefine such common code.
-
 # Enter the SPECS directory so that relative directory references resolve
 pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null
+
+# Gather some facts
+packageArchitecture="$(uname -m)"
+packageBuilder="$(whoami)"
+if ! packageDistribution=$(rpmspec --eval '%{dist}' 2>/dev/null); then
+	packageDistribution=$(rpm --eval '%{dist}' 2>/dev/null)
+fi
 
 # Loop over all *.spec files
 while IFS= read -r -d '' specFile; do
@@ -47,11 +59,10 @@ while IFS= read -r -d '' specFile; do
 	# Provide some important defaults
 	specPathedName="${specFile%.*}"
 	specConfigMap[PACKAGE_NAME]="${specPathedName##*/}"
-	specConfigMap[PACKAGE_ARCH]="$(uname -m)"
-	specConfigMap[PACKAGE_BUILDER]="$(whoami)"
+	specConfigMap[PACKAGE_DIST]="${packageDistribution:1}"
+	specConfigMap[PACKAGE_ARCH]="$packageArchitecture"
+	specConfigMap[PACKAGE_BUILDER]="$packageBuilder"
 	specConfigMap[PACKAGE_BUILT_TIME]="$(date +"%a %b %d %Y")"
-	specConfigMap[PACKAGE_VERSION]='0.1.0'		# TODO:  Find a way to extract the version number from SORUCE0?  Or not?
-	specConfigMap[PACKAGE_RELEASE_NUMBER]=1		# TODO:  IIF PACKAGE_VERSION is known, add a function that automates tracking this PACKAGE_RELEASE_NUMBER
 
 	# Check for a matching *.conf file in the same directory
 	specConfigFile="${specPathedName}.conf"
@@ -128,3 +139,6 @@ EOCAT
 done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*.spec' -print0)
 
 popd &>/dev/null
+
+# Cleanup
+unset packageArchitecture packageBuilder packageDistribution
