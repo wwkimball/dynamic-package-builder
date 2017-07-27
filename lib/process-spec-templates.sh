@@ -37,6 +37,7 @@ pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null
 
 # Gather some facts
 packageArchitecture="$(uname -m)"
+packageBuildHost="$(hostname -f)"
 packageBuilder="$(whoami)"
 if ! packageDistribution=$(rpmspec --eval '%{dist}' 2>/dev/null); then
 	packageDistribution=$(rpm --eval '%{dist}' 2>/dev/null)
@@ -62,6 +63,7 @@ while IFS= read -r -d '' specFile; do
 	specConfigMap[PACKAGE_DIST]="${packageDistribution:1}"
 	specConfigMap[PACKAGE_ARCH]="$packageArchitecture"
 	specConfigMap[PACKAGE_BUILDER]="$packageBuilder"
+	specConfigMap[PACKAGE_BUILD_HOST]="$packageBuildHost"
 	specConfigMap[PACKAGE_BUILT_TIME]="$(date +"%a %b %d %Y")"
 
 	# Check for a matching *.conf file in the same directory

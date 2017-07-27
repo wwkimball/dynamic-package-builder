@@ -188,11 +188,12 @@ identify concatenation file-names.
 In addition to whatever variables you may define within the optional
 configuration file for your RPM specification, the following variables are also
 available, which you can override:
-  * PACKAGE_NAME:  Name of your package, derived from the spec file-name
-  * PACKAGE_DIST:  OS Distribution of the host that is building your S/RPMs
   * PACKAGE_ARCH:  CPU Architecture of the host that is building your S/RPMs
+  * PACKAGE_BUILD_HOST:  Fully-qualified name of the host building your S/RPMs
   * PACKAGE_BUILDER:  User-name of the entitity that is building your S/RPMs
   * PACKAGE_BUILT_TIME:  %changelog compatible Date-Time stamp
+  * PACKAGE_DIST:  OS Distribution of the host that is building your S/RPMs
+  * PACKAGE_NAME:  Name of your package, derived from the spec file-name
 EOSPECHELP
 		;;
 
