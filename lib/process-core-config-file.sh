@@ -15,6 +15,7 @@ fi
 # The configuration source may be a file or directory.  When it is a directory,
 # attempt to source every file within it in alphabetical order.
 configSource="${_globalSettings[GLOBAL_CONFIG_SOURCE]}"
+logDebug "Loading global configuration from source, ${configSource}"
 hasConfigError=false
 if [ -d "$configSource" ]; then
 	while IFS= read -r -d '' configFile; do
@@ -24,8 +25,8 @@ if [ -d "$configSource" ]; then
 		fi
 	done < <(find "$configSource" -maxdepth 1 -type f -iname '*.conf' -print0)
 elif [ -e "$configSource" ]; then
-	if ! parseConfigFile "$configFile" confFileSettings _globalSettingsRules; then
-		logError "Unable to read from configuration file, ${configFile}."
+	if ! parseConfigFile "$configSource" confFileSettings _globalSettingsRules; then
+		logError "Unable to read from configuration file, ${configSource}."
 		hasConfigError=true
 	fi
 elif ${_globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]}; then
