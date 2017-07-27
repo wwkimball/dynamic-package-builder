@@ -171,7 +171,7 @@ additional symbols are employed.  The supported extensions include:
      \${:VAR_NAME} except that 'default' becomes the value when VAR_NAME is
      undefined or empty.
   3. \${@FILE_CONCAT} copies the content of FILE_CONCAT verbatim into the spec
-     file.
+     file.  Any variables or other file concatenations are processed.
 
 The {} pair is not optional.  Failure to use them will result in your
 substitution attempt being ignored.
@@ -197,10 +197,16 @@ EOSPECHELP
 		;;
 
 		*)	# General
+			printUsage
+			echo
 			cat <<EOHELP
 At its heart, ${_myName} simply attempts to build RPM and SRPM files from
 your sources and RPM specification files.  Because there is little value in
 merely wrapping the rpmbuild program, this script family does quite a bit more.
+Most notably, this project offers powerful templating capabilities and external
+configuration for your RPM specification files.  Such features enable content
+re-use and adaptive, dynamic content.  See the other help subjects for more
+detail.
 
 The reality of RPM building is that there is no such thing as a permanently
 static RPM specification file.  Packagers who truly adhere to RPM standards
