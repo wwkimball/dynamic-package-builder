@@ -31,7 +31,7 @@ if [[ $BASH_VERSION =~ ^([0-9]+\.[0-9]+).+$ ]]; then
 	bashMajMin=${BASH_REMATCH[1]}
 	bashMinVer='4.3'
 	if [ 0 -ne $(bc <<< "${bashMinVer} > ${bashMajMin}") ]; then
-		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}."
+		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}.\n$(bash --version)"
 	fi
 	unset bashMajMin bashMinVer
 else
