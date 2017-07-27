@@ -17,15 +17,15 @@ actualRPMDir="${_globalSettings[WORKSPACE]}/RPMS"
 actualSRPMDir="${_globalSettings[WORKSPACE]}/SRPMS"
 desiredRPMDir="${_globalSettings[RPMS_DIRECTORY]}"
 desiredSRPMDir="${_globalSettings[SRPMS_DIRECTORY]}"
-tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' | wc -l)")
-tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.srpm' | wc -l)")
-if [ 0 -lt $tallyRPMs -o 0 -lt $tallySRPMs ]; then
-	packagesBuilt=true
+tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' 2>/dev/null | wc -l)")
+tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.srpm' 2>/dev/null | wc -l)")
+if $packagesBuilt && [ 0 -lt $tallyRPMs -a 0 -lt $tallySRPMs ]; then
 	logVerbose "Post-processing ${tallyRPMs} RPM and ${tallySRPMs} SRPM packages..."
 	if ! source "${_myLibDir}"/process-rpm-files-post.sh; then
 		errorOut 3 "Unable to import the RPM file post-processing source."
 	fi
 else
+	packageFailures=true
 	logError "Neither RPMs nor SRPMs were built."
 	_exitCode=103
 fi
@@ -64,8 +64,8 @@ if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	tempWorkDir="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
 	deleteTempWorkspace=true
 
-	if $packageFailures && ! ${_globalSettings[KEEP_FAILED_TEMP_WORKSPACE]}; then
-		logInfo "Preserving temporary workspace directory, ${tempWorkDir}"
+	if $packageFailures && ${_globalSettings[KEEP_FAILED_TEMP_WORKSPACE]}; then
+		logInfo "Preserving failed temporary workspace directory, ${tempWorkDir}"
 		deleteTempWorkspace=false
 	fi
 

@@ -11,6 +11,9 @@ fi
 if ! source "${_funcDir}"/parse-config-file.sh; then
 	errorOut 3 "Unable to import the config file parser."
 fi
+if ! source "${_funcDir}"/print-ordered-hash.sh; then
+	errorOut 3 "Unable to import the print-ordered-hash helper."
+fi
 
 # Import all functions from the rpm-helpers project, then the pwd, then the
 # SPECS contrib directories.
@@ -30,6 +33,10 @@ function copyGlobalSettingsTo {
 	for configKey in "${!_globalSettings[@]}"; do
 		targetMap[$configKey]="${_globalSettings[$configKey]}"
 	done
+}
+
+function logDebugKV {
+	logDebug "...$1 => $2"
 }
 
 # Enter the SPECS directory so that relative directory references resolve
@@ -74,6 +81,10 @@ while IFS= read -r -d '' specFile; do
 			errorOut 20 "Unable to read from configuration file, ${configFile}."
 		fi
 	fi
+
+	# DEBUG:  Report all gathered configuration values
+	logDebug "Accepted configuration values from all sources, including ${specConfigFile}:"
+	printOrderedHash logDebugKV specConfigMap
 
 	hadSubstitution=true
 	while $hadSubstitution; do
