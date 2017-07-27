@@ -52,13 +52,13 @@ function interpolateVariables {
 		# VAR1=$VAR2; VAR2=$VAR1
 		# VAR1=$VAR2; VAR2=$VAR3; VAR3=$VAR1
 		if [[ -v variablesSeen[$variableName] ]]; then
-			variablesSeen[$variableName]=1
-		else
 			((variablesSeen[$variableName]++))
 			if [ $recursionLimit -lt ${variablesSeen[$variableName]} ]; then
 				echo "WARNING:  String interpolation cancelled due to more than ${recursionLimit} replacements for variable, ${variableName}, in ${templateString}.  Set INTERPOLATION_RECURSION_LIMIT higher if you believe this to be too sensitive." >&2
 				return 1
 			fi
+		else
+			variablesSeen[$variableName]=1
 		fi
 
 		# Report empty values

@@ -84,7 +84,5 @@ if ! source "${_myLibDir}"/process-post-build.sh; then
 	errorOut 3 "Unable to import the post-build processing source."
 fi
 
-# Adjust the exit code as necessary
-
-
+# Report overall success/fail to the caller
 exit $_exitCode

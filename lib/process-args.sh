@@ -86,14 +86,15 @@ comments as follows:
    3. Values may be bare (non-demarcated) or demarcated with either ' or "
       symbols, however comments may be added only after demarcated values lest #
       would otherwise never be allowed as part of a value.
-   4. Values may be dedented or non-dedented HEREDOCs.  A non-dedented HEREDOC is
-      identified as all the content between <<HERETAG and HERETAG, where HERETAG
-      is any arbitrary sequence of capitalized letters and underscore characters.
-      A dedented HEREDOC is indicated by prefixing the arbitrary HERETAG with a -
-      symbol.  Whereas a non-dedented HEREDOC value preserves all whitespace
-      between the HERETAGs, a dedented HEREDOC strips the leading whitespace from
-      every line, up to the number of whitespace characters present on the first
-      line, up to the first non-whitespace character.
+   4. Values may be dedented or non-dedented HEREDOCs.  A non-dedented HEREDOC
+      is identified as all the content between <<HERETAG and HERETAG, where
+      HERETAG is any arbitrary sequence of capitalized letters and underscore
+      characters.  A dedented HEREDOC is indicated by prefixing the arbitrary
+      HERETAG with a - symbol.  Whereas a non-dedented HEREDOC value preserves
+      all whitespace between the HERETAGs, a dedented HEREDOC strips the leading
+      characters (whitespace or not) from every line, to the number of
+      whitespace characters present before the first non-whitespace character on
+      the first line.
    5. Unterminated HEREDOCs will generate a fatal error.
    6. Outside of HEREDOCs, # marks the start of a comment.  Entire lines may be
       commented.  Comments may appear at the end of any line except when it is a
@@ -147,36 +148,23 @@ additional symbols are employed.  The supported extensions include:
 The {} pair is not optional.  Failure to use them will result in your
 substitution attempt being ignored.
 
-
-
-
-
-
-
-TODO:  Document protection against interminable recursion
-
-
-
-
-
-
-
 Variable name substitution and file concatenation occur repeatedly over the
 spec file until there are no such operations remaining or a recursion limit set
-via ______ as been reached (caused by repeatedly triggering the same variable
-substitution or file concatenation too many times).  So, variables injected
-by a concatenation are substituted on the subsequent pass, which can result in
-more concatenations, and so on.  You may use variable substitution to
-dynamically identify concatenation file-names.
+via INTERPOLATION_RECURSION_LIMIT or INCLUDE_RECURSION_LIMIT has been reached
+(caused by repeatedly triggering the same variable substitution or file
+concatenation too many times, respectively).  So, variables injected by a
+concatenation are substituted on the subsequent pass, which can result in more
+concatenations, and so on.  You may use variable substitution to dynamically
+identify concatenation file-names.
 
 In addition to whatever variables you may define within the optional
 configuration file for your RPM specification, the following variables are also
 available, which you can override:
-  * PACKAGE_NAME
-  * PACKAGE_DIST
-  * PACKAGE_ARCH
-  * PACKAGE_BUILDER
-  * PACKAGE_BUILT_TIME
+  * PACKAGE_NAME:  Name of your package, derived from the spec file-name
+  * PACKAGE_DIST:  OS Distribution of the host that is building your S/RPMs
+  * PACKAGE_ARCH:  CPU Architecture of the host that is building your S/RPMs
+  * PACKAGE_BUILDER:  User-name of the entitity that is building your S/RPMs
+  * PACKAGE_BUILT_TIME:  %changelog compatible Date-Time stamp
 EOSPECHELP
 		;;
 
@@ -252,10 +240,9 @@ OPTIONS:
   -a, --keepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=true
   -A, --nokeepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=false
     When USE_TEMP_WORKSPACE is enabled, also enable this option to preserve the
-    temporary workspace whenever any RPM build fails.  Otherwise, the temporary
-    workspace is always destroyed.  This can be helpful for troubleshooting your
-    RPM builds but should not be left enabled beyond active debugging.  Default:
-    false
+    temporary workspace whenever any RPM build fails (and no fatal error
+	occurs).  This can be helpful for troubleshooting your RPM builds but should
+	not be left enabled beyond active debugging.  Default:  false
 
   -d, --debug, OUTPUT_DEBUG
     Maximize the console output level to include debugging messages.  This is

@@ -43,8 +43,13 @@ if ! packageDistribution=$(rpmspec --eval '%{dist}' 2>/dev/null); then
 fi
 
 # Loop over all *.spec files
+recursionLimit=${INCLUDE_RECURSION_LIMIT:-5}
 while IFS= read -r -d '' specFile; do
 	logDebug "Processing ${specFile}..."
+
+	# Reset interminable recursion markers
+	unset seenIncludes
+	declare -A seenIncludes
 
 	# Reset the config file map to just the global settings
 	unset specConfigMap
@@ -73,7 +78,6 @@ while IFS= read -r -d '' specFile; do
 		hadSubstitution=false	# Assume each will be the last loop
 
 		# Parse the spec file until there are no remaining substitutions
-		# TODO:  Protect against interminable recursion
 		specSwapFile="${specPathedName}.swap"
 		if ! echo -n >"$specSwapFile"; then
 			errorOut 21 "Unable to create swap file, ${specSwapFile}"
@@ -121,11 +125,23 @@ while IFS= read -r -d '' specFile; do
 				swapFile=${BASH_REMATCH[2]}
 				swapPost=${BASH_REMATCH[3]}
 
-				if [ -f "$swapFile" ]; then
-					logVerbose "Injecting file, ${swapFile}, into spec at ${specFile}:${specLineNo}"
-					swapLine="${swapPre}$(cat "$swapFile")${swapPost}"
+				# Canonicalize the include file to better detect interminable
+				# recursion cases.
+				includeFile=$(realpath -m "$swapFile")
+				if [[ -v seenIncludes[$includeFile] ]]; then
+					((seenIncludes[$includeFile]++))
+					if [ $recursionLimit -lt ${seenIncludes[$includeFile]} ]; then
+						errorOut 22 "File inclusion cancelled due to more than ${recursionLimit} instances of, ${includeFile}, in ${specFile}.  Set INCLUDE_RECURSION_LIMIT higher if you believe this to be too sensitive." >&2
+					fi
 				else
-					errorOut 23 "No such file, ${swapFile}, for ${specFile}:${specLineNo}."
+					seenIncludes[$includeFile]=1
+				fi
+
+				if [ -f "$includeFile" ]; then
+					logVerbose "Injecting file, ${includeFile}, into spec at ${specFile}:${specLineNo}"
+					swapLine="${swapPre}$(cat "$includeFile")${swapPost}"
+				else
+					errorOut 23 "No such file, ${includeFile}, for ${specFile}:${specLineNo}."
 					swapLine="${swapPre}${swapPost}"
 				fi
 			fi
