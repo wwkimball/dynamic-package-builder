@@ -44,7 +44,6 @@ if ! which rpmbuild &>/dev/null; then
 fi
 
 # Process global configuration
-logInfo "Processing global configuration..."
 if ! source "${_myLibDir}"/define-global-settings.sh; then
 	errorOut 3 "Unable to import the global configuration source."
 fi

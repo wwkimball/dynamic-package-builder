@@ -60,6 +60,8 @@ ${_myFileName} ${_myVersion}
 Copyright (c) 2003-2017, William W. Kimball Jr. MBA MSIS
 License:  ISC
 EOVER
+	echo
+	cat "${_myDir}"/LICENSE
 }
 
 function printUsage {
@@ -123,6 +125,32 @@ substitutions and further includes occur against the included content.
 External configuration files for spec files are found by matching the spec
 filename against a conf file by the same name in the same directory.
 EOCONFIGHELP
+		;;
+
+		CONTRIB)
+			cat <<EOCONTRIBHELP
+You can write your own shell script functions to be loaded into memory before
+your RPM specification files are processed.  This enables you to call those
+functions during processing for any purpose that helps you build your dynamic
+spec files and their configuration.  To have your custom functions loaded,
+simply name the files which define them to match skeleton mask "func-*.sh" and
+place them into a sub-directory named 'contrib' of either your SPECS_DIRECTORY
+or the present working directory (when you start this program).
+
+At least one such function comes with this project, getReleaseNumberForVersion,
+defined in the contrib/func-get-release-number-for-version.sh source file.  This
+sample function illustrates how you can automate the generation and tracking of
+your S/RPM release tag numbers (the part of your EVR value that is required to
+reset or increment every time you build an S/RPM, based on the package version).
+You can use this sample function in a *.conf file like so:
+
+PACKAGE_RELEASE: <\$ getReleaseNumberForVersion \${PACKAGE_NAME} \${PACKAGE_VERSION} \${PACKAGE_ARCH} \${PACKAGE_DIST} \${HOME}/rpm-data
+
+Note that the various PACKAGE_* variables being passed to
+getReleaseNumberForVersion in this example are provided automatically by
+${_myName}, except PACKAGE_VERSION.  See --help SPECS for more
+information about them.
+EOCONTRIBHELP
 		;;
 
         SPECS)
@@ -197,6 +225,7 @@ OPTIONS:
     Print this general help or more specific documentation on any of these
     SUBJECT categories, then quits:
       * CONFIGS
+      * CONTRIB
       * SPECS
 
   -i, --version
@@ -337,11 +366,6 @@ OPTIONS:
 EOHELP
 		;;
 	esac
-
-	echo
-	printVersion
-	echo
-	cat "${_myDir}"/LICENSE
 }
 
 # Process command-line arguments.  Allow environment variables to be used to set
