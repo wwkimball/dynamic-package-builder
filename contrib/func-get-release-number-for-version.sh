@@ -36,16 +36,26 @@ function getReleaseNumberForVersion {
 		if [ 0 -eq $? ]; then
 			IFS=$'\t' read -r recVersion releaseNumber recCreated recModified <<<"$versionRecord"
 			((releaseNumber++))
-			echo -e "${recVersion}\t${releaseNumber}\t${recCreated}\t$(date)" >"$swapFile"
-			grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"
+			if ! echo -e "${recVersion}\t${releaseNumber}\t${recCreated}\t$(date)" >"$swapFile" \
+				|| ! grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"
+			then
+				errorOut 74 "Unable to save incremented release number to data file, ${dataFile}."
+			fi
 		else
-			echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile"
-			cat "$dataFile" >>"$swapFile"
+			if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile" \
+				|| ! cat "$dataFile" >>"$swapFile"
+			then
+				errorOut 73 "Unable to add a new version record to data file, ${dataFile}."
+			fi
 		fi
-		rm -f "$dataFile"
-		mv "$swapFile" "$dataFile"
+
+		if ! rm -f "$dataFile" || ! mv "$swapFile" "$dataFile"; then
+			errorOut 72 "Unable to save updated data file, ${dataFile}."
+		fi
 	else
-		echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$dataFile"
+		if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$dataFile"; then
+			errorOut 71 "Unable to create original data file, ${dataFile}."
+		fi
 	fi
 
 	echo "$releaseNumber"
