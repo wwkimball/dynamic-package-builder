@@ -47,7 +47,7 @@ else
 logError "--> Created incremental record in swap file, ${swapFile}"
 			fi
 
-			if ! grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"; then
+			if ! grep -v "^${recVersion}"$'\t' "$dataFile" >>"$swapFile"; then
 				errorOut 72 "Unable to copy other release records to swap file, ${swapFile}."
 else
 logError "--> Copied all old records from ${dataFile} to ${swapFile}."
