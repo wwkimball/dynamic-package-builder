@@ -32,7 +32,7 @@ function getReleaseNumberForVersion {
 	fi
 
 	if [ -f "$dataFile" ]; then
-logError "--> Found data file at ${dataFile}."
+logError "--> Found data file at ${dataFile}.  Looking for '${packageVersion}\t'..."
 		versionRecord=$(grep "^${packageVersion}\t" "${dataFile}")
 		if [ 0 -eq $? ]; then
 logError "--> Matched record against ${packageVersion} in ${dataFile}."
@@ -57,7 +57,7 @@ logError "--> Copied all old records from ${dataFile} to ${swapFile}."
 			then
 				errorOut 73 "Unable to add a new version record to swap file, ${swapFile}."
 else
-logError "--> Wrote new record for unmatched version number to ${swapFile}."
+logError "--> Wrote new record for unmatched version number, ${packageVersion}, to ${swapFile}."
 			fi
 
 			if ! cat "$dataFile" >>"$swapFile"; then
