@@ -1,5 +1,8 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+#
+# Preconditions:
+# * Declared before calling this code:  confFileSettings, _globalSettingsRules
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
@@ -40,4 +43,4 @@ if $hasConfigError; then
 fi
 
 # Cleanup
-unset configSource configFile hasConfigError configKey parseConfigFile
+unset configSource configFile hasConfigError

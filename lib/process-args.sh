@@ -1,5 +1,9 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+#
+# Preconditions:
+# * Defined before this code is executed:
+#   * cliSettings, _globalSettingsRules
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
@@ -15,7 +19,7 @@ if ! source "${_funcDir}"/trims.sh; then
 	errorOut 3 "Unable to import the trims helper."
 fi
 
-function processArgs__tryStoreAllowedSetting {
+function __processArgs__tryStoreAllowedSetting {
 	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${FUNCNAME[0]}."}
 	local configValue=$(alltrim "$2")
 	local storeResult
@@ -408,7 +412,7 @@ while [ $# -gt 0 ]; do
 				logError "-e|--precmd requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					PREBUILD_COMMAND "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -420,7 +424,7 @@ while [ $# -gt 0 ]; do
 				logError "--precmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					PREBUILD_COMMAND "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -440,7 +444,7 @@ while [ $# -gt 0 ]; do
 				logError "-s|--globalconfig requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -452,7 +456,7 @@ while [ $# -gt 0 ]; do
 				logError "--globalconfig= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					GLOBAL_CONFIG_SOURCE "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -528,7 +532,7 @@ while [ $# -gt 0 ]; do
 				logError "-n|--rpmdir requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					RPMS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -540,7 +544,7 @@ while [ $# -gt 0 ]; do
 				logError "--rpmdir= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					RPMS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -551,7 +555,7 @@ while [ $# -gt 0 ]; do
 				logError "-j|--srpmdir requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SRPMS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -563,7 +567,7 @@ while [ $# -gt 0 ]; do
 				logError "--srpmdir= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SRPMS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -575,7 +579,7 @@ while [ $# -gt 0 ]; do
 				logError "-o|--postcmd requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					POSTBUILD_COMMAND "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -587,7 +591,7 @@ while [ $# -gt 0 ]; do
 				logError "--postcmd= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					POSTBUILD_COMMAND "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -608,7 +612,7 @@ while [ $# -gt 0 ]; do
 				logError "-r|--rpmspecs requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -620,7 +624,7 @@ while [ $# -gt 0 ]; do
 				logError "--rpmspecs= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SPECS_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -632,7 +636,7 @@ while [ $# -gt 0 ]; do
 				logError "-s|--sources requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -644,7 +648,7 @@ while [ $# -gt 0 ]; do
 				logError "--sources= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					SOURCES_DIRECTORY "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -669,7 +673,7 @@ while [ $# -gt 0 ]; do
 				logError "-w|--workspace requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					WORKSPACE "$2" \
 					cliSettings _globalSettingsRules
 				shift
@@ -681,7 +685,7 @@ while [ $# -gt 0 ]; do
 				logError "--workspace= requires a value."
 				hasCommandLineErrors=true
 			else
-				processArgs__tryStoreAllowedSetting \
+				__processArgs__tryStoreAllowedSetting \
 					WORKSPACE "$testValue" \
 					cliSettings _globalSettingsRules
 			fi
@@ -716,16 +720,17 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
+# Copy any remaining arguments as pass-through aguments for rpmbuild.
+if [ $# -gt 0 ]; then
+	__processArgs__tryStoreAllowedSetting \
+		RPMBUILD_ARGS "$*" cliSettings _globalSettingsRules
+fi
+
 # Don't process any further with fatal command input errors
 if $hasCommandLineErrors; then
 	exit 1
 fi
 
-# Copy any remaining arguments as pass-through aguments for rpmbuild.
-if [ $# -gt 0 ]; then
-	processArgs__tryStoreAllowedSetting RPMBUILD_ARGS "$*" cliSettings _globalSettingsRules
-fi
-
 # Cleanup
-unset printVersion printUsage printHelp processArgs__tryStoreAllowedSetting \
+unset printVersion printUsage printHelp __processArgs__tryStoreAllowedSetting \
 	hasCommandLineErrors testValue

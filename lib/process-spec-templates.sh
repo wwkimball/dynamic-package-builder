@@ -28,14 +28,15 @@ for contribSource in "${_myDir}" . "${_globalSettings[SPECS_DIRECTORY]}"; do
 	fi
 done
 
-function copyGlobalSettingsTo {
-	declare -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
+function __processSpecTemplates__copyGlobalSettingsTo {
+	local -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
+	local configKey
 	for configKey in "${!_globalSettings[@]}"; do
 		targetMap[$configKey]="${_globalSettings[$configKey]}"
 	done
 }
 
-function logDebugKV {
+function __processSpecTemplates__logDebugKV {
 	logDebug "...$1 => $2"
 }
 
@@ -62,7 +63,7 @@ while IFS= read -r -d '' specFile; do
 	# Reset the config file map to just the global settings
 	unset specConfigMap
 	declare -A specConfigMap
-	copyGlobalSettingsTo specConfigMap
+	__processSpecTemplates__copyGlobalSettingsTo specConfigMap
 
 	# Provide some important defaults
 	specPathedName="${specFile%.*}"
@@ -84,9 +85,9 @@ while IFS= read -r -d '' specFile; do
 
 	# DEBUG:  Report all gathered configuration values
 	logDebug "Accepted configuration values from all sources, including ${specConfigFile}:"
-	printOrderedHash logDebugKV specConfigMap
+	printOrderedHash __processSpecTemplates__logDebugKV specConfigMap
 
-	hadSubstitution=true
+	hadSubstitution=true		# Emulate a do...while loop construct
 	while $hadSubstitution; do
 		hadSubstitution=false	# Assume each will be the last loop
 
@@ -177,4 +178,10 @@ done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*
 popd &>/dev/null
 
 # Cleanup
-unset packageArchitecture packageBuilder packageDistribution
+unset contribSource contribDir funcFile packageArchitecture packageBuildHost \
+	packageBuilder packageDistribution recursionLimit specFile seenIncludes \
+	specConfigMap specPathedName specConfigFile hadSubstitution specSwapFile \
+	specLineNo specLine swapPre swapVar swapPost swapValue swapLine \
+	swapDefault swapFile includeFile \
+	__processSpecTemplates__copyGlobalSettingsTo \
+	__processSpecTemplates__logDebugKV

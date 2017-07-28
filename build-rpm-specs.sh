@@ -20,47 +20,29 @@ if ! source "${_myLibDir}"/set-logger.sh; then
 	exit 3
 fi
 
-# Prohibit running as root
-if [ 0 -eq $(id -u) ]; then
-	errorOut 126 "You must not run ${_myFileName} as root!"
-fi
-
-# Bash 4.3+ is required
-if [[ $BASH_VERSION =~ ^([0-9]+\.[0-9]+).+$ ]]; then
-	bashMajMin=${BASH_REMATCH[1]}
-	bashMinVer='4.3'
-	if [ 0 -ne $(bc <<< "${bashMinVer} > ${bashMajMin}") ]; then
-		errorOut 127 "bash version ${bashMinVer} or higher is required.  You have ${BASH_VERSION}.\n$(bash --version)"
-	fi
-	unset bashMajMin bashMinVer
-else
-	errorOut 128 "Unable to identify the installed version of bash."
-fi
-
-# rpmbuild must be installed
-if ! which rpmbuild &>/dev/null; then
-	errorOut 125 "The rpmbuild program must be installed and accessible on the PATH."
+# Check pre-requisites
+if ! source "${_myLibDir}"/check-prereqs.sh; then
+	errorOut 3 "Unable to import the pre-requisites checker."
 fi
 
 # Process global configuration, which will be stored and shared via a settings
-# map.  Reset it to ensure no settings are being injected from elsewhere.
-unset _globalSettings
+# map, and constrained by some value rules.  Reset them both to ensure no
+# settings are being injected from elsewhere.
+unset _globalSettings _globalSettingsRules
 declare -A _globalSettings
-_globalSettings[EXIT_CODE]=0	# The code this script will ultimately return to caller
+declare -A _globalSettingsRules
+_globalSettings[EXIT_CODE]=0		# The code this script will ultimately return to caller
+_globalSettings[PACKAGES_BUILT]=0	# Number of successfully-built packages
+_globalSettings[PACKAGES_FAILED]=0	# Number of failed package build attempts
 if ! source "${_myLibDir}"/define-global-settings.sh; then
 	errorOut 3 "Unable to import the global configuration source."
 fi
 
-# PREBUILD_COMMAND
-if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
-	logInfo "Running pre-build command..."
-	/usr/bin/env bash -c "${_globalSettings[PREBUILD_COMMAND]}"
-	prebuildState=$?
-	if [ 0 -ne $prebuildState ]; then
-		errorOut 12 "Received non-zero exit state from the pre-build command, ${prebuildState}."
-	fi
+# Handle pre-build processing
+logInfo "Running pre-processing tasks..."
+if ! source "${_myLibDir}"/process-pre-build.sh; then
+	errorOut 3 "Unable to import the pre-build processing source."
 fi
-unset prebuildState
 
 # Prepare the workspace
 logInfo "Preparing an S/RPM building workspace at ${_globalSettings[TEMP_WORKSPACE]}..."

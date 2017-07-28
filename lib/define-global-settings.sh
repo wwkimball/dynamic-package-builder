@@ -22,6 +22,7 @@ fi
 # Copy collected settings to the global configuration map
 function __globalSettings__applySettingsToGlobalConfig {
 	local -n settingsMap=${1?"ERROR:  A settings map must be provided as the first positional argument to ${FUNCNAME[0]}."}
+	local configKey
 
 	for configKey in "${!settingsMap[@]}"; do
 		_globalSettings[$configKey]="${settingsMap[$configKey]}"
@@ -45,7 +46,6 @@ function __globalSettings__applySettingsToGlobalConfig {
 }
 
 # Set configuration rules (allowable configuration keys and their values)
-declare -A _globalSettingsRules
 _globalSettingsRules[BUILD_RPMS]='^(true|false)$'
 _globalSettingsRules[BUILD_SRPMS]='^(true|false)$'
 _globalSettingsRules[EXECUTABLE_SPECS]='^(true|false)$'
@@ -140,8 +140,8 @@ _globalSettings[TEMP_WORKSPACE_MASK]="${_globalSettings[TEMP_WORKSPACE_PREFIX]}*
 
 # Interpolate all variables in the global configuration
 for configKey in "${!_globalSettings[@]}"; do
-	_globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}" _globalSettings)
-	if [ 0 -ne $? ]; then
+	if ! _globalSettings[$configKey]=$(interpolateVariables "${_globalSettings[$configKey]}" _globalSettings)
+	then
 		errorOut 1 "Unable to interpolate all variables found in ${configKey}."
 	fi
 done
@@ -174,6 +174,5 @@ logDebug "Accepted configuration values from all sources:"
 printOrderedHash logDebugKV _globalSettings
 
 # Cleanup
-unset envVarSettings cliSettings configKey \
-	logDebugKV userValue canonValue \
-	__globalSettings__applySettingsToGlobalConfig
+unset envVarSettings cliSettings confFileSettings configKey userValue \
+	canonValue __globalSettings__applySettingsToGlobalConfig logDebugKV

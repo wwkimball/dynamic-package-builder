@@ -52,22 +52,22 @@ fi
 if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	# SPECS_DIRECTORY
 	if ${_globalSettings[USER_SET_SPECS_DIRECTORY]}; then
-		expectedSpecsDirectory="${workspaceDir}/SPECS"
-		logDebug "Expecting SPECS_DIRECTORY:  ${expectedSpecsDirectory}"
-		if [ "$expectedSpecsDirectory" != "${_globalSettings[SPECS_DIRECTORY]}" ]
+		expectedValue="${_globalSettings[WORKSPACE]}/SPECS"
+		logDebug "Expecting SPECS_DIRECTORY:  ${expectedValue}"
+		if [ "$expectedValue" != "${_globalSettings[SPECS_DIRECTORY]}" ]
 		then
-			errorOut 99 "You must enable USE_TEMP_WORKSPACE because the indicated SPECS directory differs from the required location, ${expectedSpecsDirectory}."
+			errorOut 99 "You must enable USE_TEMP_WORKSPACE because the indicated SPECS directory differs from the required location, ${expectedValue}."
 		fi
 	fi
 fi
 if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	# SOURCES_DIRECTORY
 	if ${_globalSettings[USER_SET_SOURCES_DIRECTORY]}; then
-		expectedSourcesDirectory="${workspaceDir}/SOURCES"
-		logDebug "Expecting SOURCES_DIRECTORY:  ${expectedSourcesDirectory}"
-		if [ "$expectedSourcesDirectory" != "${_globalSettings[SOURCES_DIRECTORY]}" ]
+		expectedValue="${_globalSettings[WORKSPACE]}/SOURCES"
+		logDebug "Expecting SOURCES_DIRECTORY:  ${expectedValue}"
+		if [ "$expectedValue" != "${_globalSettings[SOURCES_DIRECTORY]}" ]
 		then
-			errorOut 98 "You must enable USE_TEMP_WORKSPACE because the indicated SOURCES directory differs from the required location, ${expectedSourcesDirectory}."
+			errorOut 98 "You must enable USE_TEMP_WORKSPACE because the indicated SOURCES directory differs from the required location, ${expectedValue}."
 		fi
 	fi
 fi
@@ -150,5 +150,4 @@ if ${_globalSettings[EXECUTABLE_SPECS]}; then
 fi
 
 # Cleanup
-unset workspaceDir copyFrom copyTo execFile execState rpmFile \
-	expectedSpecsDirectory expectedSourcesDirectory
+unset copyFrom copyTo execFile execState rpmFile expectedValue

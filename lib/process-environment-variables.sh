@@ -1,5 +1,8 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+#
+# Preconditions:
+# * envVarSettings is defined before this helper can be called.
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
@@ -15,7 +18,7 @@ if ! source "${_funcDir}"/trims.sh; then
 	errorOut 3 "Unable to import the trims helper."
 fi
 
-function processEnvVars__tryStoreAllowedSetting {
+function __processEnvVars__tryStoreAllowedSetting {
 	local configKey=${1:?"ERROR:  A configuration key must be specified as the first positional argument to ${FUNCNAME[0]}."}
 	local configValue=$(alltrim "$2")
 	local storeResult
@@ -59,7 +62,7 @@ hasEnvVarErrors=false
 for configKey in "${!_globalSettingsRules[@]}"; do
 	configValue="${!configKey}"
 	if [ ! -z "$configValue" ]; then
-		if ! processEnvVars__tryStoreAllowedSetting \
+		if ! __processEnvVars__tryStoreAllowedSetting \
 			"$configKey" "$configValue" envVarSettings _globalSettingsRules
 		then
 			hasEnvVarErrors=true
@@ -73,4 +76,5 @@ if $hasEnvVarErrors; then
 fi
 
 # Cleanup
-unset hasEnvVarErrors configValue processEnvVars__tryStoreAllowedSetting
+unset hasEnvVarErrors configKey configValue \
+	__processEnvVars__tryStoreAllowedSetting
