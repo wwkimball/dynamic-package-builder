@@ -148,7 +148,7 @@ done
 
 # Canonicalize paths in the global configuration; none can be blank or root
 for configKey in RPMS_DIRECTORY SOURCES_DIRECTORY SPECS_DIRECTORY \
-	SRPMS_DIRECTORY TEMP_WORKSPACE_DIRECTORY WORKSPACE
+	SRPMS_DIRECTORY TEMP_WORKSPACE WORKSPACE
 do
 	userValue="${_globalSettings[$configKey]}"
 	if [ -z "$userValue" ]; then
