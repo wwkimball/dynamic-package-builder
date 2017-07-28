@@ -19,7 +19,7 @@ desiredRPMDir="${_globalSettings[RPMS_DIRECTORY]}"
 desiredSRPMDir="${_globalSettings[SRPMS_DIRECTORY]}"
 tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' 2>/dev/null | wc -l)")
 tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.srpm' 2>/dev/null | wc -l)")
-if $packagesBuilt && [ 0 -lt $tallyRPMs -a 0 -lt $tallySRPMs ]; then
+if $packagesBuilt; then
 	logVerbose "Post-processing ${tallyRPMs} RPM and ${tallySRPMs} SRPM packages..."
 	if ! source "${_myLibDir}"/process-rpm-files-post.sh; then
 		errorOut 3 "Unable to import the RPM file post-processing source."
