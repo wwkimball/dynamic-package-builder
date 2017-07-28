@@ -22,7 +22,7 @@ function getReleaseNumberForVersion {
 	local dataFileBaseName="${dataFileDir}/${packageName}"
 	local dataFile="${dataFileBaseName}.tab"
 	local swapFile="${dataFileBaseName}.swap"
-	local versionRecord recVersion recCreated recModified
+	local versionRecord recVersion recCreated recModified rowCount
 
 	# Check that the data directory can be utilized
 	if [ ! -d "$dataFileDir" ]; then
@@ -47,10 +47,14 @@ else
 logError "--> Created incremental record in swap file, ${swapFile}"
 			fi
 
-			if ! grep -v "^${recVersion}"$'\t' "$dataFile" >>"$swapFile"; then
-				errorOut 72 "Unable to copy other release records to swap file, ${swapFile}."
+			# Don't bother copying zero rows
+			rowCount=$(wc -l ${dataFile} | cut -d' ' -f1)
+			if [ 1 -lt $rowCount ]; then
+				if ! grep -v "^${recVersion}"$'\t' "$dataFile" >>"$swapFile"; then
+					errorOut 72 "Unable to copy other release records to swap file, ${swapFile}."
 else
 logError "--> Copied all old records from ${dataFile} to ${swapFile}."
+				fi
 			fi
 		else
 			if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile"

@@ -78,7 +78,7 @@ while IFS= read -r -d '' specFile; do
 	if [ -e "$specConfigFile" ]; then
 		# Ingest its contents into the specConfig hash
 		if ! parseConfigFile "$specConfigFile" specConfigMap; then
-			errorOut 20 "Unable to read from configuration file, ${configFile}."
+			errorOut 20 "Unable to read from configuration file, ${specConfigFile}."
 		fi
 	fi
 
