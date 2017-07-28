@@ -241,7 +241,8 @@ function parseConfigFile {
 			evalCommand=$(interpolateVariables "${BASH_REMATCH[2]}" _globalSettings $configMapRef)
 			configValue=$(eval "$evalCommand")
 			if [ 0 -ne $? ]; then
-				logWarning "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
+				logError "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
+				returnState=4
 			else
 				__parseConfigFile__tryStoreAllowedSetting \
 					"$configFile" "$configKey" $lineNumber \

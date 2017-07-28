@@ -31,7 +31,7 @@ while IFS= read -r -d '' specFile; do
 	if rpmbuild \
 		--define "_topdir ${_globalSettings[WORKSPACE]}" \
 		-${rpmBuildMode} "$specFile" \
-		"${_globalSettings[RPMBUILD_ARGS]}"
+		${_globalSettings[RPMBUILD_ARGS]}
 	then
 		packagesBuilt=true
 	else
