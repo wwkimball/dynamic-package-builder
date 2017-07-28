@@ -36,25 +36,35 @@ function getReleaseNumberForVersion {
 		if [ 0 -eq $? ]; then
 			IFS=$'\t' read -r recVersion releaseNumber recCreated recModified <<<"$versionRecord"
 			((releaseNumber++))
-			if ! echo -e "${recVersion}\t${releaseNumber}\t${recCreated}\t$(date)" >"$swapFile" \
-				|| ! grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"
+
+			if ! echo -e "${recVersion}\t${releaseNumber}\t${recCreated}\t$(date)" >"$swapFile"
 			then
-				errorOut 74 "Unable to save incremented release number to data file, ${dataFile}."
+				errorOut 71 "Unable to save incremented release number to swap file, ${swapFile}."
+			fi
+
+			if ! grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"; then
+				errorOut 72 "Unable to copy other release records to swap file, ${swapFile}."
 			fi
 		else
-			if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile" \
-				|| ! cat "$dataFile" >>"$swapFile"
+			if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile"
 			then
-				errorOut 73 "Unable to add a new version record to data file, ${dataFile}."
+				errorOut 73 "Unable to add a new version record to swap file, ${swapFile}."
+			fi
+
+			if ! cat "$dataFile" >>"$swapFile"; then
+				errorOut 74 "Unable to transfer previous records from ${dataFile} to a swap file, ${swapFile}."
 			fi
 		fi
 
-		if ! rm -f "$dataFile" || ! mv "$swapFile" "$dataFile"; then
-			errorOut 72 "Unable to save updated data file, ${dataFile}."
+		if ! rm -f "$dataFile"; then
+			errorOut 75 "Unable to remove old data file, ${dataFile}."
+		fi
+		if ! mv "$swapFile" "$dataFile"; then
+			errorOut 76 "Unable to save updated data file, ${swapFile}, to ${dataFile}."
 		fi
 	else
 		if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$dataFile"; then
-			errorOut 71 "Unable to create original data file, ${dataFile}."
+			errorOut 77 "Unable to create original data file, ${dataFile}."
 		fi
 	fi
 
