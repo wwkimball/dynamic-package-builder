@@ -18,7 +18,7 @@ actualSRPMDir="${_globalSettings[WORKSPACE]}/SRPMS"
 desiredRPMDir="${_globalSettings[RPMS_DIRECTORY]}"
 desiredSRPMDir="${_globalSettings[SRPMS_DIRECTORY]}"
 tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' 2>/dev/null | wc -l)")
-tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.srpm' 2>/dev/null | wc -l)")
+tallySRPMs=$(ltrim "$(find "$actualSRPMDir" -type f -name '*.src.rpm' 2>/dev/null | wc -l)")
 if $packagesBuilt; then
 	logVerbose "Post-processing ${tallyRPMs} RPM and ${tallySRPMs} SRPM packages..."
 	if ! source "${_myLibDir}"/process-rpm-files-post.sh; then

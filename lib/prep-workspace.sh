@@ -29,7 +29,7 @@ if ${_globalSettings[PURGE_SRPMS_ON_START]}; then
 		if ! rm -f "$rpmFile"; then
 			errorOut 11 "Unable to delete old SRPM file:  ${rpmFile}"
 		fi
-	done < <(find "${_globalSettings[SRPMS_DIRECTORY]}" -type f -iname "*.srpm" -print0)
+	done < <(find "${_globalSettings[SRPMS_DIRECTORY]}" -type f -iname "*.src.rpm" -print0)
 fi
 
 # PURGE_TEMP_WORKSPACES_ON_START

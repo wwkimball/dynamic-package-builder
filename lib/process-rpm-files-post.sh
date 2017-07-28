@@ -32,6 +32,6 @@ if ${_globalSettings[FLATTEN_RPMS_DIRECTORY]} && [ 0 -lt $tallyRPMs ]; then
 fi
 if ${_globalSettings[FLATTEN_SRPMS_DIRECTORY]} && [ 0 -lt $tallySRPMs ]; then
 	logInfo "Flattening ${desiredSRPMDir}"
-	find "$desiredSRPMDir" -type f -name '*.rpm' -exec mv {} "$desiredSRPMDir" \;
+	find "$desiredSRPMDir" -type f -name '*.src.rpm' -exec mv {} "$desiredSRPMDir" \;
 	find "$desiredSRPMDir" -type d ! \( -name $(basename "$desiredSRPMDir") -o -name . \) -delete
 fi
