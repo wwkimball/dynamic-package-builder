@@ -43,14 +43,6 @@ function __processSpecTemplates__logDebugKV {
 # Enter the SPECS directory so that relative directory references resolve
 pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null
 
-# Gather some facts
-packageArchitecture="$(uname -m)"
-packageBuildHost="$(hostname -f)"
-packageBuilder="$(whoami)"
-if ! packageDistribution=$(rpmspec --eval '%{dist}' 2>/dev/null); then
-	packageDistribution=$(rpm --eval '%{dist}' 2>/dev/null)
-fi
-
 # Loop over all *.spec files
 recursionLimit=${INCLUDE_RECURSION_LIMIT:-5}
 while IFS= read -r -d '' specFile; do
@@ -68,10 +60,10 @@ while IFS= read -r -d '' specFile; do
 	# Provide some important defaults
 	specPathedName="${specFile%.*}"
 	specConfigMap[PACKAGE_NAME]="${specPathedName##*/}"
-	specConfigMap[PACKAGE_DIST]="${packageDistribution:1}"
-	specConfigMap[PACKAGE_ARCH]="$packageArchitecture"
-	specConfigMap[PACKAGE_BUILDER]="$packageBuilder"
-	specConfigMap[PACKAGE_BUILD_HOST]="$packageBuildHost"
+	specConfigMap[PACKAGE_DIST]="${_globalSettings[BUILD_HOST_OS_DISTRIBUTION]}"
+	specConfigMap[PACKAGE_ARCH]="${_globalSettings[BUILD_HOST_CPU_ARCHITECTURE]}"
+	specConfigMap[PACKAGE_BUILDER]="${_globalSettings[BUILD_HOST_USER_NAME]}}"
+	specConfigMap[PACKAGE_BUILD_HOST]="${_globalSettings[BUILD_HOST_NAME]}"
 	specConfigMap[PACKAGE_BUILT_TIME]="$(date +"%a %b %d %Y")"
 
 	# Check for a matching *.conf file in the same directory
@@ -178,8 +170,7 @@ done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*
 popd &>/dev/null
 
 # Cleanup
-unset contribSource contribDir funcFile packageArchitecture packageBuildHost \
-	packageBuilder packageDistribution recursionLimit specFile seenIncludes \
+unset contribSource contribDir funcFile recursionLimit specFile seenIncludes \
 	specConfigMap specPathedName specConfigFile hadSubstitution specSwapFile \
 	specLineNo specLine swapPre swapVar swapPost swapValue swapLine \
 	swapDefault swapFile includeFile \

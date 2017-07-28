@@ -20,7 +20,7 @@ if ! source "${_funcDir}"/print-ordered-hash.sh; then
 fi
 
 # Copy collected settings to the global configuration map
-function __globalSettings__applySettingsToGlobalConfig {
+function __defineGlobalSettings__applySettingsToGlobalConfig {
 	local -n settingsMap=${1?"ERROR:  A settings map must be provided as the first positional argument to ${FUNCNAME[0]}."}
 	local configKey
 
@@ -43,6 +43,11 @@ function __globalSettings__applySettingsToGlobalConfig {
 			;;
 		esac
 	done
+}
+
+# Report formatter for key-value printing
+function __defineGlobalSettings__logDebugKV {
+	logDebug "...$1 => $2"
 }
 
 # Set configuration rules (allowable configuration keys and their values)
@@ -105,13 +110,22 @@ _globalSettings[USER_SET_SOURCES_DIRECTORY]=false
 _globalSettings[USER_SET_SPECS_DIRECTORY]=false
 _globalSettings[USER_SET_USE_TEMP_WORKSPACE]=false
 
+# Add some build host facts for later re-use
+if ! hostOSDistribution=$(rpmspec --eval '%{dist}' 2>/dev/null); then
+	hostOSDistribution=$(rpm --eval '%{dist}' 2>/dev/null)
+fi
+_globalSettings[BUILD_HOST_CPU_ARCHITECTURE]=$(uname -m)
+_globalSettings[BUILD_HOST_NAME]=$(hostname -f)
+_globalSettings[BUILD_HOST_OS_DISTRIBUTION]="${hostOSDistribution:1}"
+_globalSettings[BUILD_HOST_USER_NAME]=$(whoami)
+
 # Import permissible environment variables
 declare -A envVarSettings
 logVerbose "Processing environment variables..."
 if ! source "${_myLibDir}"/process-environment-variables.sh; then
 	errorOut 3 "Unable to import the environment variable processing source."
 fi
-__globalSettings__applySettingsToGlobalConfig envVarSettings
+__defineGlobalSettings__applySettingsToGlobalConfig envVarSettings
 
 # Process command-line arguments, which override environment variables by the
 # same key.
@@ -120,7 +134,7 @@ logVerbose "Processing command-line arguments..."
 if ! source "${_myLibDir}"/process-args.sh; then
 	errorOut 3 "Unable to import the argument processing source."
 fi
-__globalSettings__applySettingsToGlobalConfig cliSettings
+__defineGlobalSettings__applySettingsToGlobalConfig cliSettings
 
 # Attempt to load the core configuration file(s).  These are for setting the
 # overall behavior of the RPM build, not each RPM.
@@ -129,10 +143,10 @@ logVerbose "Processing the global configuration file(s)..."
 if ! source "${_myLibDir}"/process-core-config-file.sh; then
 	errorOut 3 "Unable to import the core config processing source."
 fi
-__globalSettings__applySettingsToGlobalConfig confFileSettings
+__defineGlobalSettings__applySettingsToGlobalConfig confFileSettings
 
 # Reapply CLI arguments to override config file settings, if any were set
-__globalSettings__applySettingsToGlobalConfig cliSettings
+__defineGlobalSettings__applySettingsToGlobalConfig cliSettings
 
 # Update dynamic global variables
 _globalSettings[TEMP_WORKSPACE]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_SUFFIX]}"
@@ -167,12 +181,11 @@ do
 done
 
 # DEBUG:  Report all gathered configuration values
-function logDebugKV {
-	logDebug "...$1 => $2"
-}
 logDebug "Accepted configuration values from all sources:"
-printOrderedHash logDebugKV _globalSettings
+printOrderedHash __defineGlobalSettings__logDebugKV _globalSettings
 
 # Cleanup
 unset envVarSettings cliSettings confFileSettings configKey userValue \
-	canonValue __globalSettings__applySettingsToGlobalConfig logDebugKV
+	canonValue hostOSDistribution \
+	__defineGlobalSettings__applySettingsToGlobalConfig \
+	__defineGlobalSettings__logDebugKV
