@@ -216,11 +216,11 @@ function parseConfigFile {
 		# Permit file input for values
 		elif [[ $configLine =~ ^[[:space:]]*([A-Za-z][A-Za-z0-9_]*)[[:space:]]*[=:][[:space:]]*\<@[[:space:]]*(.+)$ ]]; then
 			configKey=${BASH_REMATCH[1]^^}
-			readValueFromFile=${BASH_REMATCH[2]}
+			readValueFromFile=$(interpolateVariables "${BASH_REMATCH[2]}" _globalSettings $configMapRef)
 
-			# Expand certain variables in the path
-			if [[ $readValueFromFile =~ ^(~|\$HOME|\$\{HOME\})(.+)$ ]]; then
-				readValueFromFile="${HOME}/${BASH_REMATCH[2]}"
+			# Expand ~ at the start of the path
+			if [[ $readValueFromFile =~ ^~(.+)$ ]]; then
+				readValueFromFile="${HOME}/${BASH_REMATCH[1]}"
 			fi
 
 			if [ -f "$readValueFromFile" ]; then
