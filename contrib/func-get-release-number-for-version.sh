@@ -32,27 +32,38 @@ function getReleaseNumberForVersion {
 	fi
 
 	if [ -f "$dataFile" ]; then
+logError "--> Found data file at ${dataFile}."
 		versionRecord=$(grep "^${packageVersion}\t" "${dataFile}")
 		if [ 0 -eq $? ]; then
+logError "--> Matched record against ${packageVersion} in ${dataFile}."
 			IFS=$'\t' read -r recVersion releaseNumber recCreated recModified <<<"$versionRecord"
 			((releaseNumber++))
+logError "--> Calculated next release number at ${releaseNumber}."
 
 			if ! echo -e "${recVersion}\t${releaseNumber}\t${recCreated}\t$(date)" >"$swapFile"
 			then
 				errorOut 71 "Unable to save incremented release number to swap file, ${swapFile}."
+else
+logError "--> Created incremental record in swap file, ${swapFile}"
 			fi
 
 			if ! grep -v "^${recVersion}\t" "$dataFile" >>"$swapFile"; then
 				errorOut 72 "Unable to copy other release records to swap file, ${swapFile}."
+else
+logError "--> Copied all old records from ${dataFile} to ${swapFile}."
 			fi
 		else
 			if ! echo -e "${packageVersion}\t${releaseNumber}\t$(date)\t$(date)" >"$swapFile"
 			then
 				errorOut 73 "Unable to add a new version record to swap file, ${swapFile}."
+else
+logError "--> Wrote new record for unmatched version number to ${swapFile}."
 			fi
 
 			if ! cat "$dataFile" >>"$swapFile"; then
 				errorOut 74 "Unable to transfer previous records from ${dataFile} to a swap file, ${swapFile}."
+else
+logError "--> Copied all old records to the swap file, ${swapFile}."
 			fi
 		fi
 
