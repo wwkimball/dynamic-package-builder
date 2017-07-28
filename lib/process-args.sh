@@ -122,6 +122,17 @@ comments as follows:
   11. Key names must begin with an alphabetic character but may otherwise
       consist of any alphanumeric characters and the _ symbol.
 
+Any value may contain variables for substitution.  Such variables must be
+expressed using form ${:VARIABLE_NAME} where all symbols are required and
+VARIABLE_NAME may be:
+  * any key name that was assigned earlier in the configuration file
+  * any environment variable name
+  * any global configuration variable
+
+If you omit the :, the variable will not be expanded while the configuration
+file is being parsed, but it may be expanded when the value is applied,
+depending on context and whether such an environment variable exists.
+
 On its own line, an @include INCLUDE_FILE statement injects the contents of
 INCLUDE_FILE at that point.  Include file processing is recursive, so variable
 substitutions and further includes occur against the injected content.

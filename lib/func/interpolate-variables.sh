@@ -36,7 +36,6 @@ function interpolateVariables {
 		shift
 	done
 
-	#while [[ $templateString =~ ^.*(\$\{?([A-Za-z0-9_]+)\}?).*$ ]]; do
 	while [[ $templateString =~ ^.*(\$\{:([A-Za-z0-9_]+)\}).*$ ]]; do
 		fullTemplate=${BASH_REMATCH[0]}
 		fullVariable=${BASH_REMATCH[1]}
