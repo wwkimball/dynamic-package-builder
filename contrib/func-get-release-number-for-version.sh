@@ -33,7 +33,7 @@ function getReleaseNumberForVersion {
 
 	if [ -f "$dataFile" ]; then
 logError "--> Found data file at ${dataFile}.  Looking for '${packageVersion}\t'..."
-		versionRecord=$(grep "^${packageVersion}\t" "${dataFile}")
+		versionRecord=$(grep "^${packageVersion}"$'\t' "${dataFile}")
 		if [ 0 -eq $? ]; then
 logError "--> Matched record against ${packageVersion} in ${dataFile}."
 			IFS=$'\t' read -r recVersion releaseNumber recCreated recModified <<<"$versionRecord"
