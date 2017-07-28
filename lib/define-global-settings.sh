@@ -70,8 +70,7 @@ _globalSettingsRules[SRPMS_DIRECTORY]='^.+$'
 _globalSettingsRules[USE_TEMP_WORKSPACE]='^(true|false)$'
 _globalSettingsRules[WORKSPACE]='^.+$'
 
-# Define global configuration defaults
-declare -A _globalSettings
+# Define global configuration defaults (the map is declared by the parent)
 _globalSettings[BUILD_RPMS]=true
 _globalSettings[BUILD_SRPMS]=true
 _globalSettings[EXECUTABLE_SPECS]=false
@@ -97,10 +96,10 @@ _globalSettings[USE_TEMP_WORKSPACE]=false
 _globalSettings[WORKSPACE]="${_pwDir}"
 
 # Define other, internal global settings
-_globalSettings[TEMP_WORKSPACE_DIRECTORY]=
-_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]=
-_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]=rpm-workspace-
-_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]=.tmp
+_globalSettings[TEMP_WORKSPACE]=
+_globalSettings[TEMP_WORKSPACE_MASK]=
+_globalSettings[TEMP_WORKSPACE_PREFIX]=rpm-workspace-
+_globalSettings[TEMP_WORKSPACE_SUFFIX]=.tmp
 _globalSettings[USER_SET_GLOBAL_CONFIG_SOURCE]=false
 _globalSettings[USER_SET_SOURCES_DIRECTORY]=false
 _globalSettings[USER_SET_SPECS_DIRECTORY]=false
@@ -136,8 +135,8 @@ __globalSettings__applySettingsToGlobalConfig confFileSettings
 __globalSettings__applySettingsToGlobalConfig cliSettings
 
 # Update dynamic global variables
-_globalSettings[TEMP_WORKSPACE_DIRECTORY]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
-_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]="${_globalSettings[TEMP_WORKSPACE_DIRECTORY_PREFIX]}*${_globalSettings[TEMP_WORKSPACE_DIRECTORY_SUFFIX]}"
+_globalSettings[TEMP_WORKSPACE]="${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_PREFIX]}$(date +'%Y-%m-%d-%H-%M-%S')-${$}-${RANDOM}${_globalSettings[TEMP_WORKSPACE_SUFFIX]}"
+_globalSettings[TEMP_WORKSPACE_MASK]="${_globalSettings[TEMP_WORKSPACE_PREFIX]}*${_globalSettings[TEMP_WORKSPACE_SUFFIX]}"
 
 # Interpolate all variables in the global configuration
 for configKey in "${!_globalSettings[@]}"; do

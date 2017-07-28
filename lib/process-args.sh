@@ -120,10 +120,11 @@ comments as follows:
 
 On its own line, an @include INCLUDE_FILE statement injects the contents of
 INCLUDE_FILE at that point.  Include file processing is recursive, so variable
-substitutions and further includes occur against the included content.
+substitutions and further includes occur against the injected content.
 
 External configuration files for spec files are found by matching the spec
-filename against a conf file by the same name in the same directory.
+filename against a conf file by the same name in the same directory.  So, to
+configure my-project.spec, create my-project.conf in the same directory.
 EOCONFIGHELP
 		;;
 
@@ -144,7 +145,7 @@ your S/RPM release tag numbers (the part of your EVR value that is required to
 reset or increment every time you build an S/RPM, based on the package version).
 You can use this sample function in a *.conf file like so:
 
-PACKAGE_RELEASE: <\$ getReleaseNumberForVersion \${PACKAGE_NAME} \${PACKAGE_VERSION} \${PACKAGE_ARCH} \${PACKAGE_DIST} \${HOME}/rpm-data
+PACKAGE_RELEASE: <\$ getReleaseNumberForVersion \${PACKAGE_NAME} \${PACKAGE_VERSION} \${PACKAGE_ARCH} \${PACKAGE_DIST} '\${HOME}/rpm-release-data'
 
 Note that the various PACKAGE_* variables being passed to
 getReleaseNumberForVersion in this example are provided automatically by
@@ -160,7 +161,9 @@ and idiosynchracies will not be discussed here.  Rather, this documentation
 covers the extensions that are afforded by ${_myName}.  These are expressed
 as shell-style variable substitutions.  However, to avoid conflict with
 variables that are meant to be left untouched in your scriptlets, some
-additional symbols are employed.  The supported extensions include:
+additional symbols are required.
+
+These extensions include:
   1. \${:VAR_NAME} is a simple variable substitution.  Available variables come
      from the global settings as well as any keys found within configuration
      files by the same name and in the same directory as the spec file itself
@@ -184,6 +187,12 @@ concatenation too many times, respectively).  So, variables injected by a
 concatenation are substituted on the subsequent pass, which can result in more
 concatenations, and so on.  You may use variable substitution to dynamically
 identify concatenation file-names.
+
+For example, this kind of complexity is allowed:
+  ${@${:WORKSPACE}/fragments/${:PACKAGE_NAME}.${:PACKAGE_DIST}.spec}
+which will expand, and cause to be injected, a file named similar to:
+  /my/build/directory/fragments/my-project.el7.centos.spec
+However, a fatal error will be issued should the FILE_CONCAT not exist.
 
 In addition to whatever variables you may define within the optional
 configuration file for your RPM specification, the following variables are also
@@ -346,11 +355,16 @@ OPTIONS:
   -t, --tempworkspace, USE_TEMP_WORKSPACE=true
   -T, --notempworkspace, USE_TEMP_WORKSPACE=false
     Create a unique temporary workspace to which all SPECS and SOURCES are
-    copied before RPM building begins.  This is forced only when necessary and
-    not specifically disabled.  It is not enabled by default because copying
-    SPECS and SOURCES can be either unnecessarily wasteful or simply a bad idea,
-    like when SOURCES are very large or EXECUTABLE_SPECS is enabled and the
-    executables require a specific relative directory structure.  Default: false
+    copied before RPM building begins.  This is usually a good idea because your
+    RPM specification files are often changed during processing.  It is not
+    enabled by default however, because copying SPECS and SOURCES can be either
+    unnecessarily wasteful or simply a bad idea, like when SOURCES are very
+    large or EXECUTABLE_SPECS is enabled and the executables require a specific
+    relative directory structure.  Note that if your WORKSPACE directory
+    structure lacks SPECS or SOURCES subdirectories, a fatal error will be
+    issued when you fail to enable USE_TEMP_WORKSPACE because rpmbuild mandates
+    a rigid directory structure which includes SPECS and SOURCES.  Default:
+    false
 
   -w DIRECTORY, --workspace=DIRECTORY, WORKSPACE
     The root of the directory tree from where RPM source files are pulled and
@@ -358,9 +372,10 @@ OPTIONS:
     be conducted.  Default: .
 
   -- RPMBUILD_ARGS
-    Any additional command-line arguments to pass directly to the rpmbuild
-    program.  A -- must be used to separate argument sets between
-    ${_myName} and rpmbuild on the command-line.
+    Notice the requied space between -- and RPMBUILD_ARGS.  Any additional
+    command-line arguments to pass directly to the rpmbuild program.  A -- must
+    be used to separate argument sets between ${_myName} and rpmbuild
+    on the command-line.
 EOHELP
 		;;
 	esac

@@ -29,7 +29,7 @@ fi
 while IFS= read -r -d '' specFile; do
 	logInfo "Building ${specFile}..."
 	if rpmbuild \
-		--define "_topdir ${_globalSettings[WORKSPACE]}" \
+		--define "_topdir ${_globalSettings[TEMP_WORKSPACE]}" \
 		-${rpmBuildMode} "$specFile" \
 		${_globalSettings[RPMBUILD_ARGS]}
 	then
@@ -43,8 +43,8 @@ done < <(find "${_globalSettings[SPECS_DIRECTORY]}" -maxdepth 1 -type f -name '*
 # Pass errors to the caller
 if $packageFailures; then
 	if $packagesBuilt; then
-		_exitCode=101
+		_globalSettings[EXIT_CODE]=101
 	else
-		_exitCode=100
+		_globalSettings[EXIT_CODE]=100
 	fi
 fi

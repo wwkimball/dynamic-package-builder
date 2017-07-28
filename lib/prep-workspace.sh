@@ -34,16 +34,21 @@ fi
 
 # PURGE_TEMP_WORKSPACES_ON_START
 if ${_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]}; then
-	logInfo "Deleting old workspaces matching:  ${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]}"
+	logInfo "Deleting old workspaces matching:  ${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_MASK]}"
 	while IFS= read -r -d '' tempWorkspace; do
 		logDebug "Deleting old workspace directory:  ${tempWorkspace}"
 		if ! rm -rf "$tempWorkspace"; then
 			logWarning "Unable to delete old workspace directory:  ${tempWorkspace}"
 		fi
-	done < <(find "${_globalSettings[WORKSPACE]}" -maxdepth 1 -type d -name "${_globalSettings[TEMP_WORKSPACE_DIRECTORY_MASK]}" -print0)
+	done < <(find "${_globalSettings[WORKSPACE]}" -maxdepth 1 -type d -name "${_globalSettings[TEMP_WORKSPACE_MASK]}" -print0)
 fi
 
-# Ensure USE_TEMP_WORKSPACE is set appropriately
+# WORKSPACE and TEMP_WORKSPACE can be materially different when the caller isn't
+# expecting their RPM build activities to be moved to TEMP_WORKSPACE (out of
+# necessity because rpmbuild's required directory structure is rigid).  As such,
+# if a user-supplied directory structure fails to meet rpmbuild's expectations,
+# an error must be issued to block the build attempt, lest the user's own code
+# fail to find assets it may seek.  Ensure USE_TEMP_WORKSPACE is set usefully.
 if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	# SPECS_DIRECTORY
 	if ${_globalSettings[USER_SET_SPECS_DIRECTORY]}; then
@@ -51,8 +56,7 @@ if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 		logDebug "Expecting SPECS_DIRECTORY:  ${expectedSpecsDirectory}"
 		if [ "$expectedSpecsDirectory" != "${_globalSettings[SPECS_DIRECTORY]}" ]
 		then
-			logWarning "Forcing USE_TEMP_WORKSPACE because the indicated SPECS directory differs from the required location, ${expectedSpecsDirectory}."
-			_globalSettings[USE_TEMP_WORKSPACE]=true
+			errorOut 99 "You must enable USE_TEMP_WORKSPACE because the indicated SPECS directory differs from the required location, ${expectedSpecsDirectory}."
 		fi
 	fi
 fi
@@ -63,26 +67,22 @@ if ! ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 		logDebug "Expecting SOURCES_DIRECTORY:  ${expectedSourcesDirectory}"
 		if [ "$expectedSourcesDirectory" != "${_globalSettings[SOURCES_DIRECTORY]}" ]
 		then
-			logWarning "Forcing USE_TEMP_WORKSPACE because the indicated SOURCES directory differs from the required location, ${expectedSourcesDirectory}."
-			_globalSettings[USE_TEMP_WORKSPACE]=true
+			errorOut 98 "You must enable USE_TEMP_WORKSPACE because the indicated SOURCES directory differs from the required location, ${expectedSourcesDirectory}."
 		fi
 	fi
 fi
 
 # USE_TEMP_WORKSPACE
 if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
-	logInfo "Creating temporary workspace at ${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
-	if ! mkdir -p "${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
+	logInfo "Creating temporary workspace at ${_globalSettings[TEMP_WORKSPACE]}"
+	if ! mkdir -p "${_globalSettings[TEMP_WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
 	then
-		errorOut 2 "Unable to create temporary workspace at ${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
+		errorOut 2 "Unable to create temporary workspace at ${_globalSettings[TEMP_WORKSPACE]}"
 	fi
-
-	# Moving WORKSPACE to TEMP_WORKSPACE_DIRECTORY
-	_globalSettings[WORKSPACE]="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
 
 	# Copy all SPECS and SOURCES
 	copyFrom="${_globalSettings[SPECS_DIRECTORY]}"
-	copyTo="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}/SPECS"
+	copyTo="${_globalSettings[TEMP_WORKSPACE]}/SPECS"
 	if stat "${copyFrom}"/* &>/dev/null; then
 		if ! cp -R "$copyFrom"/* "$copyTo"; then
 			errorOut 2 "Unable to copy SPECS files from ${copyFrom} to ${copyTo}"
@@ -94,7 +94,7 @@ if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	_globalSettings[SPECS_DIRECTORY]="${copyTo}"
 
 	copyFrom="${_globalSettings[SOURCES_DIRECTORY]}"
-	copyTo="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}/SOURCES"
+	copyTo="${_globalSettings[TEMP_WORKSPACE]}/SOURCES"
 	if stat "${copyFrom}"/* &>/dev/null; then
 		if ! cp -R "$copyFrom"/* "$copyTo"; then
 			errorOut 2 "Unable to copy SOURCES files from ${copyFrom} to ${copyTo}"
@@ -102,10 +102,13 @@ if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
 	fi
 	_globalSettings[SOURCES_DIRECTORY]="${copyTo}"
 else
+	# TEMP_WORKSPACE and WORKSPACE are now the same
+	_globalSettings[TEMP_WORKSPACE]="${_globalSettings[WORKSPACE]}"
+
 	# Build the mandatory RPM workspace directory tree at WORKSPACE
-	logDebug "Ensuring the required RPM building subdirectories exist at ${_globalSettings[WORKSPACE]}."
-	if ! mkdir -p "${_globalSettings[WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
-		errorOut 4 "Unable to create RPM building workspace at ${_globalSettings[WORKSPACE]}."
+	logDebug "Ensuring the required RPM building subdirectories exist at ${_globalSettings[TEMP_WORKSPACE]}."
+	if ! mkdir -p "${_globalSettings[TEMP_WORKSPACE]}"/{BUILD,RPMS,SOURCES,SPECS,SRPMS}; then
+		errorOut 4 "Unable to create RPM building workspace at ${_globalSettings[TEMP_WORKSPACE]}."
 	fi
 fi
 

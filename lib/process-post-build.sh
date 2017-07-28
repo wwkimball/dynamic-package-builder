@@ -27,7 +27,7 @@ if $packagesBuilt; then
 else
 	packageFailures=true
 	logError "Neither RPMs nor SRPMs were built."
-	_exitCode=103
+	_globalSettings[EXIT_CODE]=103
 fi
 
 # POSTBUILD_ON_PARTIAL
@@ -53,7 +53,7 @@ if [ ! -z "$postbuildCommand" ]; then
 		postbuildState=$?
 		if [ 0 -ne $postbuildState ]; then
 			logError "Received non-zero exit state from the post-build command, ${postbuildState}."
-			_exitCode=102
+			_globalSettings[EXIT_CODE]=102
 		fi
 	fi
 fi
@@ -61,7 +61,7 @@ unset postbuildState
 
 # KEEP_FAILED_TEMP_WORKSPACE
 if ${_globalSettings[USE_TEMP_WORKSPACE]}; then
-	tempWorkDir="${_globalSettings[TEMP_WORKSPACE_DIRECTORY]}"
+	tempWorkDir="${_globalSettings[TEMP_WORKSPACE]}"
 	deleteTempWorkspace=true
 
 	if $packageFailures && ${_globalSettings[KEEP_FAILED_TEMP_WORKSPACE]}; then

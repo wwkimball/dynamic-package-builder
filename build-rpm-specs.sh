@@ -12,7 +12,6 @@ _myLibDir="${_myDir}/lib"
 _funcDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
 _pwDir="$(pwd)"
-_exitCode=0
 readonly _myDir _myFileName _myName _myLibDir _funcDir _myVersion _pwDir
 
 # Attempt to source the output logger functions
@@ -43,7 +42,11 @@ if ! which rpmbuild &>/dev/null; then
 	errorOut 125 "The rpmbuild program must be installed and accessible on the PATH."
 fi
 
-# Process global configuration
+# Process global configuration, which will be stored and shared via a settings
+# map.  Reset it to ensure no settings are being injected from elsewhere.
+unset _globalSettings
+declare -A _globalSettings
+_globalSettings[EXIT_CODE]=0	# The code this script will ultimately return to caller
 if ! source "${_myLibDir}"/define-global-settings.sh; then
 	errorOut 3 "Unable to import the global configuration source."
 fi
@@ -60,7 +63,7 @@ fi
 unset prebuildState
 
 # Prepare the workspace
-logInfo "Preparing an S/RPM building workspace at ${_globalSettings[WORKSPACE]}..."
+logInfo "Preparing an S/RPM building workspace at ${_globalSettings[TEMP_WORKSPACE]}..."
 if ! source "${_myLibDir}"/prep-workspace.sh; then
 	errorOut 3 "Unable to import the workstation preparation source."
 fi
@@ -84,4 +87,4 @@ if ! source "${_myLibDir}"/process-post-build.sh; then
 fi
 
 # Report overall success/fail to the caller
-exit $_exitCode
+exit ${_globalSettings[EXIT_CODE]}
