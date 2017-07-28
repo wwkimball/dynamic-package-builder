@@ -68,7 +68,7 @@ function printUsage {
 	echo "${_myFileName} [OPTIONS] [-- RPMBUILD_ARGS]"
 }
 
-# Used short-args:  aAbBcCdefFghikKlLmMopPrstTuUvwxXyYzZ (DEGHIjJnNOqQRSVW)
+# Used short-args:  aAbBcCdefFghikKlLmMopPrstTuUvwxXyY (DEGHIjJnNOqQRSVWzZ)
 function printHelp {
 	local helpSubject=${1^^}
 
@@ -260,13 +260,6 @@ OPTIONS:
     platform and architecture.  Enabling this option moves the output files to
     the top-level directory.  Default: false
 
-  -z, --flattensrpmdir, FLATTEN_SRPMS_DIRECTORY=true
-  -Z, --noflattensrpmdir, FLATTEN_SRPMS_DIRECTORY=false
-    Enable or disable flattening the SRPMS output directory.  The rpmbuild
-    program normally creates a deep directory structure that sorts built SRPMs
-    by platform and architecture.  Enabling this option moves the output files
-    to the top-level directory.  Default: false
-
   -g FILE_OR_PATH, --globalconfig=FILE_OR_PATH, GLOBAL_CONFIG_SOURCE
     Directory or file from which all of these global settings can be configured
     using the same key names as the environment variables.  When a directory is
@@ -346,11 +339,9 @@ OPTIONS:
     ./SPECS
 
   -j DIRECTORY, --srpmdir=DIRECTORY, SRPMS_DIRECTORY
-    Final directory for all generated SRPM files to be placed into, including
-    the nested directory structure that is created by the rpmbuild program.  To
-    flatten this directory structure (so that the files are placed directly into
-    the DIRECTORY you specify instead of a sub-directory within), you will need
-    to enable FLATTEN_SRPMS_DIRECTORY.  Default:  ./SRPMS
+    Final directory for all generated SRPM files to be placed into.  Note that
+	rpmbuild doesn't generate a nested directory structure for *.src.rpm files,
+	so there is no need to flatten this directory.  Default:  ./SRPMS
 
   -t, --tempworkspace, USE_TEMP_WORKSPACE=true
   -T, --notempworkspace, USE_TEMP_WORKSPACE=false
@@ -501,13 +492,6 @@ while [ $# -gt 0 ]; do
 		;;
 		-Y|--noflattenrpmdir)
 			cliSettings[FLATTEN_RPMS_DIRECTORY]=false
-		;;
-
-		-z|--flattensrpmdir)
-			cliSettings[FLATTEN_SRPMS_DIRECTORY]=true
-		;;
-		-Z|--noflattensrpmdir)
-			cliSettings[FLATTEN_SRPMS_DIRECTORY]=false
 		;;
 
 		-a|--keepfailedtemp)

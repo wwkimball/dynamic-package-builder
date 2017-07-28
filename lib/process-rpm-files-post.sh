@@ -24,14 +24,9 @@ if [ 0 -lt $tallySRPMs ] && [ "$actualSRPMDir" != "$desiredSRPMDir" ]; then
 	fi
 fi
 
-# If requested, FLATTEN_S?RPM_DIRECTORIES
+# If requested, FLATTEN_RPM_DIRECTORIES (SRPMS are already flat)
 if ${_globalSettings[FLATTEN_RPMS_DIRECTORY]} && [ 0 -lt $tallyRPMs ]; then
 	logInfo "Flattening ${desiredRPMDir}"
 	find "$desiredRPMDir" -type f -name '*.rpm' -exec mv {} "$desiredRPMDir" \;
 	find "$desiredRPMDir" -type d ! \( -name $(basename "$desiredRPMDir") -o -name . \) -delete
-fi
-if ${_globalSettings[FLATTEN_SRPMS_DIRECTORY]} && [ 0 -lt $tallySRPMs ]; then
-	logInfo "Flattening ${desiredSRPMDir}"
-	find "$desiredSRPMDir" -type f -name '*.src.rpm' -exec mv {} "$desiredSRPMDir" \;
-	find "$desiredSRPMDir" -type d ! \( -name $(basename "$desiredSRPMDir") -o -name . \) -delete
 fi
