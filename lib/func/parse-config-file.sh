@@ -106,7 +106,7 @@ function parseConfigFile {
 	# pull this off without resorting to even more hacky `evals` or external
 	# storage transfers.
 	local configFile=${1:?"ERROR:  A configuration file must be specified as the first positional argument to ${FUNCNAME[0]}."}
-	local configLine configKey configValue activeHereDocTag \
+	local configLine configKey configValue activeHereDocTag commandResult \
 		configMapRef=configMap${RANDOM} \
 		configRulesRef=configRules${RANDOM} \
 		dedentHereDocLength=-1 \
@@ -240,8 +240,9 @@ function parseConfigFile {
 			configKey=${BASH_REMATCH[1]^^}
 			evalCommand=$(interpolateVariables "${BASH_REMATCH[2]}" _globalSettings $configMapRef)
 			configValue=$(eval "$evalCommand")
-			if [ 0 -ne $? ]; then
-				logError "Command returned a non-zero result for key in ${configFile}:${lineNumber}:  ${configKey}."
+			commandResult=$?
+			if [ 0 -ne $commandResult ]; then
+				logError "Command returned a non-zero result, ${commandResult}, for key in ${configFile}:${lineNumber}:  ${configKey}."
 				returnState=4
 			else
 				__parseConfigFile__tryStoreAllowedSetting \
