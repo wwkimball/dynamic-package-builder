@@ -23,8 +23,8 @@ if [ 0 -lt ${_globalSettings[PACKAGES_FAILED]} ]; then
 fi
 
 # If necessary, copy S?RPMS to S?RPM_DIRECTORY
-actualRPMDir="${_globalSettings[WORKSPACE]}/RPMS"
-actualSRPMDir="${_globalSettings[WORKSPACE]}/SRPMS"
+actualRPMDir="${_globalSettings[TEMP_WORKSPACE]}/RPMS"
+actualSRPMDir="${_globalSettings[TEMP_WORKSPACE]}/SRPMS"
 desiredRPMDir="${_globalSettings[RPMS_DIRECTORY]}"
 desiredSRPMDir="${_globalSettings[SRPMS_DIRECTORY]}"
 tallyRPMs=$(ltrim "$(find "$actualRPMDir" -type f -name '*.rpm' 2>/dev/null | wc -l)")
