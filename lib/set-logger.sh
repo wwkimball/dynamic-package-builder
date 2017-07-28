@@ -64,7 +64,7 @@ function _echoPrefixDebug {
 # Prints an ERROR message
 ##
 function logError {
-	echo -e "$(_echoPrefixError) $@"
+	echo -e "$(_echoPrefixError) $@" >&2
 }
 
 ###
