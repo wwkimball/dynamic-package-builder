@@ -62,7 +62,7 @@ while IFS= read -r -d '' specFile; do
 	specConfigMap[PACKAGE_NAME]="${specPathedName##*/}"
 	specConfigMap[PACKAGE_DIST]="${_globalSettings[BUILD_HOST_OS_DISTRIBUTION]}"
 	specConfigMap[PACKAGE_ARCH]="${_globalSettings[BUILD_HOST_CPU_ARCHITECTURE]}"
-	specConfigMap[PACKAGE_BUILDER]="${_globalSettings[BUILD_HOST_USER_NAME]}}"
+	specConfigMap[PACKAGE_BUILDER]="${_globalSettings[BUILD_HOST_USER_NAME]}"
 	specConfigMap[PACKAGE_BUILD_HOST]="${_globalSettings[BUILD_HOST_NAME]}"
 	specConfigMap[PACKAGE_BUILT_TIME]="$(date +"%a %b %d %Y")"
 
