@@ -8,7 +8,7 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # PREBUILD_COMMAND
-prebuildCommand="source \"${_libDir}\"/load-contrib-functions.sh"$'\r'
+prebuildCommand="source \"${_myLibDir}\"/load-contrib-functions.sh"$'\r'
 prebuildCommand+="${_globalSettings[PREBUILD_COMMAND]}"
 if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
 	logInfo "Running pre-build command..."

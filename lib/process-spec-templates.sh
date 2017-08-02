@@ -28,7 +28,7 @@ function __processSpecTemplates__logDebugKV {
 }
 
 # Load contrib functions
-if ! source "${_libDir}"/load-contrib-functions.sh; then
+if ! source "${_myLibDir}"/load-contrib-functions.sh; then
 	errorOut 3 "Unable to import the contrib function loader."
 fi
 
