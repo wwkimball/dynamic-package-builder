@@ -8,9 +8,11 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # PREBUILD_COMMAND
+prebuildCommand="source \"${_libDir}\"/load-contrib-functions.sh"$'\r'
+prebuildCommand+="${_globalSettings[PREBUILD_COMMAND]}"
 if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
 	logInfo "Running pre-build command..."
-	/usr/bin/env bash -c "${_globalSettings[PREBUILD_COMMAND]}"
+	/usr/bin/env bash -c "$prebuildCommand"
 	prebuildState=$?
 	if [ 0 -ne $prebuildState ]; then
 		errorOut 12 "Received non-zero exit state from the pre-build command, ${prebuildState}."
@@ -18,4 +20,4 @@ if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
 fi
 
 # Cleanup
-unset prebuildState
+unset prebuildCommand prebuildState
