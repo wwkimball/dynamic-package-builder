@@ -68,6 +68,7 @@ fi
 runPostbuildCommand=false
 postbuildCommand="source \"${_myLibDir}\"/load-contrib-functions.sh"$'\r'
 postbuildCommand+="${_globalSettings[POSTBUILD_COMMAND]}"
+logDebug "Running postbuild command:\r${postbuildCommand}"
 if [ ! -z "$postbuildCommand" ]; then
 	if ${_globalSettings[POSTBUILD_ON_FAIL]}; then
 		# Run the command, no matter what
