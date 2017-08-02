@@ -65,33 +65,33 @@ fi
 # POSTBUILD_ON_PARTIAL
 # POSTBUILD_ON_FAIL
 # POSTBUILD_COMMAND
-if [ ! -z "$postbuildCommand" ]; then
+runPostbuildCommand=false
+if [ -z "${_globalSettings[POSTBUILD_COMMAND]}" ]; then
+	# Nothing to do
 	runPostbuildCommand=false
-	if ${_globalSettings[POSTBUILD_ON_FAIL]}; then
-		# Run the command, no matter what
-		runPostbuildCommand=true
-	elif $packagesBuilt && ${_globalSettings[POSTBUILD_ON_PARTIAL]}; then
-		# Run the command when at least one package was built
-		runPostbuildCommand=true
-	elif $packagesBuilt && ! $packageFailures; then
-		# Run the command when everything succeeded
-		runPostbuildCommand=true
-	fi
-
-	if $runPostbuildCommand; then
-		postbuildCommand=$(cat <<-EOCOMM
-			source "${_myLibDir}"/load-contrib-functions.sh
-			${_globalSettings[POSTBUILD_COMMAND]}
-		EOCOMM
-		)
-		logDebug "Composed postbuild command:\r${postbuildCommand}"
-		logInfo "Running post-build command"
-		/usr/bin/env bash -c "$postbuildCommand"
-		postbuildState=$?
-		if [ 0 -ne $postbuildState ]; then
-			logError "Received non-zero exit state from the post-build command, ${postbuildState}."
-			_globalSettings[EXIT_CODE]=102
-		fi
+elif ${_globalSettings[POSTBUILD_ON_FAIL]}; then
+	# Run the command, no matter what
+	runPostbuildCommand=true
+elif $packagesBuilt && ${_globalSettings[POSTBUILD_ON_PARTIAL]}; then
+	# Run the command when at least one package was built
+	runPostbuildCommand=true
+elif $packagesBuilt && ! $packageFailures; then
+	# Run the command when everything succeeded
+	runPostbuildCommand=true
+fi
+if $runPostbuildCommand; then
+	postbuildCommand=$(cat <<-EOCOMM
+		source "${_myLibDir}"/load-contrib-functions.sh
+		${_globalSettings[POSTBUILD_COMMAND]}
+	EOCOMM
+	)
+	logDebug "Composed postbuild command:\r${postbuildCommand}"
+	logInfo "Running post-build command"
+	/usr/bin/env bash -c "$postbuildCommand"
+	postbuildState=$?
+	if [ 0 -ne $postbuildState ]; then
+		logError "Received non-zero exit state from the post-build command, ${postbuildState}."
+		_globalSettings[EXIT_CODE]=102
 	fi
 fi
 

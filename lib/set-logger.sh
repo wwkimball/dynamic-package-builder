@@ -8,11 +8,12 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Define color codes
-_colLightRed='\033[0;91m'
-_colLightYellow='\033[0;93m'
-_colLightGreen='\033[0;92m'
 _colBlue='\033[0;34m'
 _colDarkGray='\033[0;90m'
+_colLightRed='\033[0;91m'
+_colLightGreen='\033[0;92m'
+_colLightYellow='\033[0;93m'
+_colLightMagenta='\033[0;95m'
 _colEnd='\033[00m'
 
 ###
@@ -57,7 +58,7 @@ function _echoPrefixVerbose {
 # Prints a colored DEBUG prefix.
 ##
 function _echoPrefixDebug {
-	echo -e "$(_echoInColor $_colDarkGray 'DEBUG: ')"
+	echo -e "$(_echoInColor $_colLightMagenta 'DEBUG: ')"
 }
 
 ###
