@@ -65,11 +65,8 @@ fi
 # POSTBUILD_ON_PARTIAL
 # POSTBUILD_ON_FAIL
 # POSTBUILD_COMMAND
-runPostbuildCommand=false
-postbuildCommand="source \"${_myLibDir}\"/load-contrib-functions.sh"$'\r'
-postbuildCommand+="${_globalSettings[POSTBUILD_COMMAND]}"
-logDebug "Running postbuild command:\r${postbuildCommand}"
 if [ ! -z "$postbuildCommand" ]; then
+	runPostbuildCommand=false
 	if ${_globalSettings[POSTBUILD_ON_FAIL]}; then
 		# Run the command, no matter what
 		runPostbuildCommand=true
@@ -82,6 +79,12 @@ if [ ! -z "$postbuildCommand" ]; then
 	fi
 
 	if $runPostbuildCommand; then
+		postbuildCommand=$(cat <<-EOCOMM
+			source "${_myLibDir}"/load-contrib-functions.sh
+			${_globalSettings[POSTBUILD_COMMAND]}
+		EOCOMM
+		)
+		logDebug "Composed postbuild command:\r${postbuildCommand}"
 		logInfo "Running post-build command"
 		/usr/bin/env bash -c "$postbuildCommand"
 		postbuildState=$?

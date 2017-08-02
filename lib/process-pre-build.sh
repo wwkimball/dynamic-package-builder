@@ -13,7 +13,7 @@ source "${_myLibDir}"/load-contrib-functions.sh
 ${_globalSettings[PREBUILD_COMMAND]}
 EOCOMM
 )
-logDebug "Running prebuild command:\r${prebuildCommand}"
+logDebug "Composed prebuild command:\r${prebuildCommand}"
 if [ ! -z "${_globalSettings[PREBUILD_COMMAND]}" ]; then
 	logInfo "Running pre-build command..."
 	/usr/bin/env bash -c "$prebuildCommand"
