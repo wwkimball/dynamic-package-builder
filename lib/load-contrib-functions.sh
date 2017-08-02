@@ -7,6 +7,7 @@ for contribSource in "${_myDir}" . "${_globalSettings[SPECS_DIRECTORY]}"; do
 	contribDir="${contribSource}/contrib"
 	if [ -d "$contribDir" ]; then
 		while IFS= read -r -d '' funcFile; do
+			logDebug "Loading contributed function from source file:  ${funcFile}"
 			if ! source "$funcFile"; then
 				logWarning "Unable to source contributed function from source file:  ${funcFile}"
 			fi
