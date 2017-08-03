@@ -11,8 +11,8 @@ _myName=${_myFileName%.*}
 _myLibDir="${_myDir}/lib"
 _myFuncDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
-_pwDir="$(pwd)"
-readonly _myDir _myFileName _myName _myLibDir _myFuncDir _myVersion _pwDir
+_myPWDir="$(pwd)"
+readonly _myDir _myFileName _myName _myLibDir _myFuncDir _myVersion _myPWDir
 export _myDir _myLibDir _myFuncDir
 
 # Attempt to source the output logger functions
