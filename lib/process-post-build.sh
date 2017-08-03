@@ -81,7 +81,9 @@ elif $packagesBuilt && ! $packageFailures; then
 fi
 if $runPostbuildCommand; then
 	postbuildCommand=$(cat <<-EOCOMM
-		source "${_myLibDir}"/load-contrib-functions.sh
+		if ! source "${_myLibDir}"/load-contrib-functions.sh; then
+			echo "ERROR:  Unable to import the contributed function loader!" >&2
+		fi
 		${_globalSettings[POSTBUILD_COMMAND]}
 	EOCOMM
 	)

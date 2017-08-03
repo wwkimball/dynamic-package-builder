@@ -13,6 +13,7 @@ _funcDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
 _pwDir="$(pwd)"
 readonly _myDir _myFileName _myName _myLibDir _funcDir _myVersion _pwDir
+export _myDir _myLibDir _funcDir
 
 # Attempt to source the output logger functions
 if ! source "${_myLibDir}"/set-logger.sh; then

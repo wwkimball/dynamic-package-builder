@@ -9,7 +9,9 @@ fi
 
 # PREBUILD_COMMAND
 prebuildCommand=$(cat <<EOCOMM
-source "${_myLibDir}"/load-contrib-functions.sh
+if ! source "${_myLibDir}"/load-contrib-functions.sh; then
+	echo "ERROR:  Unable to import the contributed function loader!" >&2
+fi
 ${_globalSettings[PREBUILD_COMMAND]}
 EOCOMM
 )
