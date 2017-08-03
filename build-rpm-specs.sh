@@ -9,11 +9,11 @@ _myDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _myFileName=$(basename ${BASH_SOURCE[0]})
 _myName=${_myFileName%.*}
 _myLibDir="${_myDir}/lib"
-_funcDir="${_myLibDir}/func"
+_myFuncDir="${_myLibDir}/func"
 _myVersion='2017.7.16.1'
 _pwDir="$(pwd)"
-readonly _myDir _myFileName _myName _myLibDir _funcDir _myVersion _pwDir
-export _myDir _myLibDir _funcDir
+readonly _myDir _myFileName _myName _myLibDir _myFuncDir _myVersion _pwDir
+export _myDir _myLibDir _myFuncDir
 
 # Attempt to source the output logger functions
 if ! source "${_myLibDir}"/set-logger.sh; then

@@ -8,10 +8,10 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/parse-config-file.sh; then
+if ! source "${_myFuncDir}"/parse-config-file.sh; then
 	errorOut 3 "Unable to import the config file parser."
 fi
-if ! source "${_funcDir}"/print-ordered-hash.sh; then
+if ! source "${_myFuncDir}"/print-ordered-hash.sh; then
 	errorOut 3 "Unable to import the print-ordered-hash helper."
 fi
 

@@ -8,7 +8,7 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/interpolate-variables.sh; then
+if ! source "${_myFuncDir}"/interpolate-variables.sh; then
 	errorOut 3 "Unable to import the interpolate-variables helper."
 fi
 

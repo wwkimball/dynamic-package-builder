@@ -8,7 +8,7 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/trims.sh; then
+if ! source "${_myFuncDir}"/trims.sh; then
 	errorOut 3 "Unable to import the string trimming helpers."
 fi
 

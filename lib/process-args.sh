@@ -12,10 +12,10 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/store-allowed-setting.sh; then
+if ! source "${_myFuncDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
-if ! source "${_funcDir}"/trims.sh; then
+if ! source "${_myFuncDir}"/trims.sh; then
 	errorOut 3 "Unable to import the trims helper."
 fi
 
