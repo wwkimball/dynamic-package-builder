@@ -9,13 +9,13 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/store-allowed-setting.sh; then
+if ! source "${_myFuncDir}"/store-allowed-setting.sh; then
 	errorOut 3 "Unable to import the store-allowed-setting helper."
 fi
-if ! source "${_funcDir}"/interpolate-variables.sh; then
+if ! source "${_myFuncDir}"/interpolate-variables.sh; then
 	errorOut 3 "Unable to import the interpolate-variables helper."
 fi
-if ! source "${_funcDir}"/print-ordered-hash.sh; then
+if ! source "${_myFuncDir}"/print-ordered-hash.sh; then
 	errorOut 3 "Unable to import the print-ordered-hash helper."
 fi
 
@@ -80,7 +80,7 @@ _globalSettings[BUILD_RPMS]=true
 _globalSettings[BUILD_SRPMS]=true
 _globalSettings[EXECUTABLE_SPECS]=false
 _globalSettings[FLATTEN_RPMS_DIRECTORY]=false
-_globalSettings[GLOBAL_CONFIG_SOURCE]="${_pwDir}/rpm-helpers.conf"
+_globalSettings[GLOBAL_CONFIG_SOURCE]="${_myPWDir}/rpm-helpers.conf"
 _globalSettings[KEEP_FAILED_TEMP_WORKSPACE]=true
 _globalSettings[OUTPUT_DEBUG]=false
 _globalSettings[OUTPUT_VERBOSE]=false
@@ -93,12 +93,12 @@ _globalSettings[PURGE_SPECS_ON_START]=false
 _globalSettings[PURGE_SRPMS_ON_START]=false
 _globalSettings[PURGE_TEMP_WORKSPACES_ON_START]=false
 _globalSettings[RPMBUILD_ARGS]=
-_globalSettings[RPMS_DIRECTORY]="${_pwDir}/RPMS"
-_globalSettings[SOURCES_DIRECTORY]="${_pwDir}/SOURCES"
-_globalSettings[SPECS_DIRECTORY]="${_pwDir}/SPECS"
-_globalSettings[SRPMS_DIRECTORY]="${_pwDir}/SRPMS"
+_globalSettings[RPMS_DIRECTORY]="${_myPWDir}/RPMS"
+_globalSettings[SOURCES_DIRECTORY]="${_myPWDir}/SOURCES"
+_globalSettings[SPECS_DIRECTORY]="${_myPWDir}/SPECS"
+_globalSettings[SRPMS_DIRECTORY]="${_myPWDir}/SRPMS"
 _globalSettings[USE_TEMP_WORKSPACE]=false
-_globalSettings[WORKSPACE]="${_pwDir}"
+_globalSettings[WORKSPACE]="${_myPWDir}"
 
 # Define other, internal global settings
 _globalSettings[TEMP_WORKSPACE]=

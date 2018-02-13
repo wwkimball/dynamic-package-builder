@@ -8,25 +8,12 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/parse-config-file.sh; then
+if ! source "${_myFuncDir}"/parse-config-file.sh; then
 	errorOut 3 "Unable to import the config file parser."
 fi
-if ! source "${_funcDir}"/print-ordered-hash.sh; then
+if ! source "${_myFuncDir}"/print-ordered-hash.sh; then
 	errorOut 3 "Unable to import the print-ordered-hash helper."
 fi
-
-# Import all functions from the rpm-helpers project, then the pwd, then the
-# SPECS contrib directories.
-for contribSource in "${_myDir}" . "${_globalSettings[SPECS_DIRECTORY]}"; do
-	contribDir="${contribSource}/contrib"
-	if [ -d "$contribDir" ]; then
-		while IFS= read -r -d '' funcFile; do
-			if ! source "$funcFile"; then
-				logWarning "Unable to source contributed function from source file:  ${funcFile}"
-			fi
-		done < <(find "${contribDir}" -maxdepth 1 -type f -iname 'func-*.sh' -print0)
-	fi
-done
 
 function __processSpecTemplates__copyGlobalSettingsTo {
 	local -n targetMap=${1:?"ERROR:  A target map must be passed as the first positional argument to ${FUNCNAME[0]}."}
@@ -39,6 +26,11 @@ function __processSpecTemplates__copyGlobalSettingsTo {
 function __processSpecTemplates__logDebugKV {
 	logDebug "...$1 => $2"
 }
+
+# Load contrib functions
+if ! source "${_myLibDir}"/load-contrib-functions.sh; then
+	errorOut 3 "Unable to import the contrib function loader."
+fi
 
 # Enter the SPECS directory so that relative directory references resolve
 pushd "${_globalSettings[SPECS_DIRECTORY]}" &>/dev/null

@@ -8,7 +8,7 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 # Import helper functions
-if ! source "${_funcDir}"/trims.sh; then
+if ! source "${_myFuncDir}"/trims.sh; then
 	errorOut 3 "Unable to import the string trimming helpers."
 fi
 
@@ -66,27 +66,34 @@ fi
 # POSTBUILD_ON_FAIL
 # POSTBUILD_COMMAND
 runPostbuildCommand=false
-postbuildCommand="${_globalSettings[POSTBUILD_COMMAND]}"
-if [ ! -z "$postbuildCommand" ]; then
-	if ${_globalSettings[POSTBUILD_ON_FAIL]}; then
-		# Run the command, no matter what
-		runPostbuildCommand=true
-	elif $packagesBuilt && ${_globalSettings[POSTBUILD_ON_PARTIAL]}; then
-		# Run the command when at least one package was built
-		runPostbuildCommand=true
-	elif $packagesBuilt && ! $packageFailures; then
-		# Run the command when everything succeeded
-		runPostbuildCommand=true
-	fi
-
-	if $runPostbuildCommand; then
-		logInfo "Running post-build command"
-		/usr/bin/env bash -c "$postbuildCommand"
-		postbuildState=$?
-		if [ 0 -ne $postbuildState ]; then
-			logError "Received non-zero exit state from the post-build command, ${postbuildState}."
-			_globalSettings[EXIT_CODE]=102
+if [ -z "${_globalSettings[POSTBUILD_COMMAND]}" ]; then
+	# Nothing to do
+	runPostbuildCommand=false
+elif ${_globalSettings[POSTBUILD_ON_FAIL]}; then
+	# Run the command, no matter what
+	runPostbuildCommand=true
+elif $packagesBuilt && ${_globalSettings[POSTBUILD_ON_PARTIAL]}; then
+	# Run the command when at least one package was built
+	runPostbuildCommand=true
+elif $packagesBuilt && ! $packageFailures; then
+	# Run the command when everything succeeded
+	runPostbuildCommand=true
+fi
+if $runPostbuildCommand; then
+	postbuildCommand=$(cat <<-EOCOMM
+		if ! source "${_myLibDir}"/load-contrib-functions.sh; then
+			echo "ERROR:  Unable to import the contributed function loader!" >&2
 		fi
+		${_globalSettings[POSTBUILD_COMMAND]}
+	EOCOMM
+	)
+	logDebug "Composed postbuild command:\r${postbuildCommand}"
+	logInfo "Running post-build command"
+	/usr/bin/env bash -c "$postbuildCommand"
+	postbuildState=$?
+	if [ 0 -ne $postbuildState ]; then
+		logError "Received non-zero exit state from the post-build command, ${postbuildState}."
+		_globalSettings[EXIT_CODE]=102
 	fi
 fi
 
