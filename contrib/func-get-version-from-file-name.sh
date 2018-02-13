@@ -10,8 +10,9 @@ if [ -z "${BASH_SOURCE[1]}" ]; then
 fi
 
 function getVersionFromFileName {
-	local fileName versionNumber
-	fileName=${1:?"ERROR:  A file-name must be provided as the first positional argument to ${FUNCNAME[0]}."}
+	local fileSpec fileName versionNumber
+	fileSpec=${1:?"ERROR:  A file-name must be provided as the first positional argument to ${FUNCNAME[0]}."}
+	fileName=${fileSpec##*/}
 
 	# Strip off any RPM-style Release Tag
 	if [[ $fileName =~ ^(.*[[:digit:]]+(\.[[:digit:]]+)*)-[[:digit:]].*$ ]]; then
