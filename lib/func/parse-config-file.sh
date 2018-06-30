@@ -69,7 +69,8 @@ function __parseConfigFile__tryStoreAllowedSetting {
 		return 1
 	fi
 
-	storeAllowedSetting "$configKey" "$(interpolateVariables "$configValue" _globalSettings $5)" $5 $6
+	# DO NOT interpolateVariables here!  Doing so breaks lazy resolution.
+	storeAllowedSetting "$configKey" "$configValue" $5 $6
 	storeResult=$?
 
 	case $storeResult in
