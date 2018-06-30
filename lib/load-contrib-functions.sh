@@ -7,8 +7,8 @@ if ! source "${_myLibDir}"/set-logger.sh; then
 	exit 3
 fi
 
-# Import all functions from the rpm-helpers project, then the pwd, then the
-# SPECS contrib directories.
+# Import all functions from this project, then the pwd, then the SPECS contrib
+# directories.
 for contribSource in "${_myDir}" . "${_globalSettings[SPECS_DIRECTORY]}"; do
 	contribDir="${contribSource}/contrib"
 	logDebug "Searching for contributed functions in directory:  ${contribDir}"

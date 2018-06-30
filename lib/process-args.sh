@@ -288,7 +288,7 @@ OPTIONS:
     Directory or file from which all of these global settings can be configured
     using the same key names as the environment variables.  When a directory is
     supplied, all *.conf files in that directory (not subdirectories) will be
-    consumed.  Default: ./rpm-helpers.conf
+    consumed.  Default: ./dynamic-package-builder.conf
 
   -a, --keepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=true
   -A, --nokeepfailedtemp, KEEP_FAILED_TEMP_WORKSPACE=false
