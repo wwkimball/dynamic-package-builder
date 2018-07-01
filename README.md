@@ -31,8 +31,8 @@ In the simplest use-case:
 
   1. For your project, place your RPM specification file(s) into a top-level
      SPECS subdirectory.
-  2. From the top-level directory of your project, clone (subrepo) this project
-     and run `dynamic-package-builder/build-rpm-specs.sh` without any
+  2. From the top-level directory of your project, clone (submodule) this
+     project and run `dynamic-package-builder/build-rpm-specs.sh` without any
 	 arguments.
   3. Your binary and source packages will be written under the RPMS and SRPMS
      subdirectories of your project.
