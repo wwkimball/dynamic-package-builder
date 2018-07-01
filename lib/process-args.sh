@@ -4,6 +4,8 @@
 # Preconditions:
 # * Defined before this code is executed:
 #   * cliSettings, _globalSettingsRules
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
@@ -61,7 +63,7 @@ function __processArgs__tryStoreAllowedSetting {
 function printVersion {
 	cat <<EOVER
 ${_myFileName} ${_myVersion}
-Copyright (c) 2003-2018, William W. Kimball Jr. MBA MSIS
+Copyright (c) 2001-2018, William W. Kimball Jr. MBA MSIS
 License:  ISC
 EOVER
 	echo

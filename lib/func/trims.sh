@@ -1,6 +1,8 @@
 ################################################################################
 # Defines a set of functions that trim whitespace characters from the left,
 # right, or both ends of a string.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

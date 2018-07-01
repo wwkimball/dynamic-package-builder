@@ -2,6 +2,8 @@
 # Defines a function, storeAllowedSetting, which provides a generic means to
 # store a value to an associative array with optiona constraints on the
 # permissible values for each key.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

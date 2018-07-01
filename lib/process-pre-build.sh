@@ -1,5 +1,7 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Extension libraries must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

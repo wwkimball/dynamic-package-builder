@@ -1,6 +1,8 @@
 ################################################################################
 # Defines a function, updateRepositoryMetadata, which provides logic that can
 # generate or update RPM/yum repository metadata.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

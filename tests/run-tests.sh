@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ###############################################################################
-# Run a suite of tests against dynamic-package-builder.
+# Run tests against dynamic-package-builder.
 ###############################################################################
 _testDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export WORKSPACE=${WORKSPACE:-${_testDir}/workspace}

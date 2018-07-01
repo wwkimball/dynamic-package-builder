@@ -2,6 +2,8 @@
 # Defines a function, publishViaCopy, which provides logic that can copy all
 # generated RPMs to a package repository directory that is accessible to the
 # local file-system.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

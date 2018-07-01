@@ -1,6 +1,8 @@
 ################################################################################
 # Defines a function, interpolateVariables, which provides a generic means to
 # replace all variables with their respective values within a string.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
