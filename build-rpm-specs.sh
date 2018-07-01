@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 ################################################################################
-# Attempts to build RPMs from all *.spec files found in a specified directory.
-# Will also attempt to run any executable files in the same directory, just in
-# case those files can generate any *.spec files.  Also handles much of the
-# standard boilerplate and setup that is typical of most RPM builds.
+# Extends the standard RPM spec file to enable dynamic construction.  This
+# allows for external configuration, boilerplate sharing, templates, and other
+# dynamic content creation.  Extensible through contributed functions, this
+# project also enables you to deeply integrate RPM building into your own
+# workflows.
+#
+# See --help for much more detail and the tests directory for examples.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 _myDir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _myFileName=$(basename ${BASH_SOURCE[0]})
 _myName=${_myFileName%.*}
 _myLibDir="${_myDir}/lib"
 _myFuncDir="${_myLibDir}/func"
-_myVersion='2017.7.16.1'
+_myVersion='2018.6.30.1'
 _myPWDir="$(pwd)"
 readonly _myDir _myFileName _myName _myLibDir _myFuncDir _myVersion _myPWDir
 export _myDir _myLibDir _myFuncDir

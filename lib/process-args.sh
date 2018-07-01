@@ -61,7 +61,7 @@ function __processArgs__tryStoreAllowedSetting {
 function printVersion {
 	cat <<EOVER
 ${_myFileName} ${_myVersion}
-Copyright (c) 2003-2017, William W. Kimball Jr. MBA MSIS
+Copyright (c) 2003-2018, William W. Kimball Jr. MBA MSIS
 License:  ISC
 EOVER
 	echo
@@ -225,22 +225,22 @@ EOSPECHELP
 			printUsage
 			echo
 			cat <<EOHELP
-At its heart, ${_myName} simply attempts to build RPM and SRPM files from
-your sources and RPM specification files.  Because there is little value in
-merely wrapping the rpmbuild program, this script family does quite a bit more.
-Most notably, this project offers powerful templating capabilities and external
-configuration for your RPM specification files.  Such features enable content
-re-use and adaptive, dynamic content.  See the other help subjects for more
-detail.
+Extends the standard package specification file to enable dynamic construction.
+Doing so allows for external configuration, boilerplate sharing, templates, and
+other dynamic content creation.  Extensible through contributed functions, this
+project also enables you to easily integrate RPM building into your own
+workflows.  See the other help subjects for more detail.
 
 The reality of RPM building is that there is no such thing as a permanently
-static RPM specification file.  Packagers who truly adhere to RPM standards
-have a fundamental need to produce a unique RPM file every time they run the
-rpmbuild program.  At the very least, the release tag number must be incremented
-or reset depending on the package version and permanently tracked throughout the
-life-span of the source project.  Alone, that is no trivial task but it -- and a
-litany of other routine RPM and SRPM file handling chores -- is made simple by
-${_myName}.
+static RPM specification file and at least some specification file content is
+wholly duplicated between projects by the same organization.  Packagers are also
+reasonably obliged to produce a unique RPM file every time they run the rpmbuild
+program, at a minimum by way of producing a unique E:V-R (epoch:version-release)
+for every build.  This project is capable of automatically tracking and
+supplying the "next" release number for any given package version and throughout
+the life-span of the source project.  Alone, that is no trivial task to perform
+accurately but it -- and a litany of other routine RPM and SRPM file handling
+chores -- is made simple by ${_myName}.
 
 The default configuration of this script is adequate for the majority of RPM
 tasks.  Point it at a directory where your SPECS and SOURCES already exist and

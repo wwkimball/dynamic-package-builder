@@ -1,0 +1,10 @@
+# Standard RPM specification metadata headers
+Name:        ${:PACKAGE_NAME}
+Version:     ${:PACKAGE_VERSION}
+Release:     ${:PACKAGE_RELEASE}%{?dist}
+Vendor:      ${:PACKAGE_VENDOR}
+Summary:     ${:PACKAGE_SUMMARY}
+License:     ${:PACKAGE_LICENSE}
+URL:         ${:PACKAGE_URL}
+BuildArch:   ${:PACKAGE_ARCH}
+AutoReqProv: ${:PACKAGE_AUTO_DETECT_REQUIRES_AND_PROVIDES:-yes}

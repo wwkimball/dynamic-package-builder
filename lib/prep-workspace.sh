@@ -33,7 +33,9 @@ if ${_globalSettings[PURGE_SRPMS_ON_START]}; then
 fi
 
 # PURGE_TEMP_WORKSPACES_ON_START
-if ${_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]}; then
+if ${_globalSettings[PURGE_TEMP_WORKSPACES_ON_START]} \
+	&& [ -d "${_globalSettings[WORKSPACE]}" ]
+then
 	logInfo "Deleting old workspaces matching:  ${_globalSettings[WORKSPACE]}/${_globalSettings[TEMP_WORKSPACE_MASK]}"
 	while IFS= read -r -d '' tempWorkspace; do
 		logDebug "Deleting old workspace directory:  ${tempWorkspace}"
