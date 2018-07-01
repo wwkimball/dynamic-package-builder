@@ -1,5 +1,7 @@
 ################################################################################
 # Extension library for ../build-rpm-specs.sh
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Attempt to source the output logger functions
 if ! source "${_myLibDir}"/set-logger.sh; then

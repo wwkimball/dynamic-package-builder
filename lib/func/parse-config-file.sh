@@ -41,6 +41,8 @@
 #    Key = value
 # 11. Key names must begin with an alphabetic character but may otherwise
 #    consist of any alphanumeric characters and the _ symbol.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

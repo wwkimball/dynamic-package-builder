@@ -4,6 +4,8 @@
 # This function tracks release numbers within a structured data file that is
 # saved to a given directory.  The directory is subdivided by given package
 # architecture and operating system.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

@@ -2,6 +2,8 @@
 # Defines a function, getVersionFromFileName, which provides logic that can
 # identify the version of a product from its file-name, provided the version
 # number appears in the file-name in a reliable, identifiable way.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then

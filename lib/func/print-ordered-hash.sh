@@ -1,6 +1,8 @@
 ################################################################################
 # Defines a function, printOrderedHash, which provides a generic means to
 # print all elements of an associative array, sorted by key.
+#
+# Copyright 2001, 2018 William W. Kimball, Jr. MBA MSIS
 ################################################################################
 # Functions must not be directly executed
 if [ -z "${BASH_SOURCE[1]}" ]; then
